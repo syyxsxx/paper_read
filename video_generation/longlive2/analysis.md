@@ -8,6 +8,22 @@
 
 LongLive 2.0 = **基础架构 (NVFP4 量化 + 序列并行) + 算法精简 (跳过 ODE init/中间 DMD) + 多镜头交互推理 (Multi-Shot Attention Sink)** 三件事打包的长视频 AR 扩散方案。论文的核心叙事是"工程基础设施反向简化算法 pipeline"。
 
+## 一.5、训练规模事实速查(论文 Sec I "Implementation Details")
+
+| 维度 | 值 |
+|------|---|
+| 基础模型 | **Wan2.2-TI2V-5B**(开源,Alibaba),text encoder + VAE 全程冻结 |
+| 是否从头训 | **不是**,基于开源 Wan 微调 |
+| 训练数据集 | **自建 120K 长视频**(论文 Sec B),按时长分三档:16-32s / 32-64s / >64s 各占 1/3。原始视频先切镜头、单独 caption,再合并成全片 caption。MANIQA 视觉质量过滤 |
+| 精度 | **AR 训练和 DMD 蒸馏全程 NVFP4** —— 论文原话:"first end-to-end NVFP4 recipe for long video generation" |
+| AR 训练 GPU 数 | **32 × NVIDIA GB200** |
+| AR 训练超参 | SP size 4, FSDP hybrid_full, local batch 1, grad accum 2 → global batch **16**, **600 iterations**, lr=1e-5, AdamW (0.0, 0.999), EMA 0.99 from step 100 |
+| AR 训练 GPU 小时 | **1920 GB200 hours**(≈ 32 GPU × 60 小时,即 2.5 天)|
+| DMD LoRA GPU 数 | **16 × NVIDIA GB200** |
+| DMD LoRA 超参 | local batch 2, grad accum 1 → global batch **32**, **5000 iterations**, gen lr=1e-5, critic lr=2e-6, dfake_gen_update_ratio=5, LoRA rank=128 / alpha=128 / BF16 |
+| DMD LoRA GPU 小时 | **60 GB200 hours**(≈ 16 GPU × 3.75 小时) |
+| Optimizer state | FP32(NVFP4 只用在 GEMM operands,标准 mixed-precision 做法) |
+
 ## 二、相对 CausVid / Self-Forcing 的关键区别
 
 ### Pipeline 简化(论文 Fig 4)
@@ -82,6 +98,58 @@ attention 规则 (noisy_i 作为 query):
 
 → **一次 forward 同时监督所有 N 个 chunk 的去噪**,这是论文标榜的训练效率核心。
 
+### Balanced SP 是否需要改 attention?
+
+**需要改 mask predicate,但不改 attention 内核**。论文 Sec C "Natural teacher-forcing mask" 是这块最核心的细节。
+
+**问题**:Ulysses All-to-All 之后,全局 token 顺序变成"按 rank 拼接":
+
+$$
+[z^{(0)}_{\text{clean}}, z^{(0)}_{\text{noisy}}, z^{(1)}_{\text{clean}}, z^{(1)}_{\text{noisy}}, \dots, z^{(P-1)}_{\text{clean}}, z^{(P-1)}_{\text{noisy}}]
+$$
+
+朴素 teacher-forcing mask 是在 logical 顺序 `[all clean ; all noisy]` 上定义的,如果直接套到 interleaved 顺序就完全错位。
+
+**两种解法**:
+1. **朴素法**:每层 attention 前 permute 回 logical 顺序、计算、再 scatter 回 SP 顺序 → 每层都加 2 次 N log N 通信,极慢
+2. **LongLive 2.0 法**:**在 interleaved 顺序上直接构造 mask predicate**
+
+具体推导(论文 Eq 9-10):对 interleaved 序列里的索引 i,
+
+$$
+p(i) = \lfloor i / 2L_{\text{loc}} \rfloor \quad (\text{在哪个 rank 段}) \\
+r(i) = i \bmod 2L_{\text{loc}} \quad (\text{rank 段内偏移}) \\
+t(i) = p(i) \cdot L_{\text{loc}} + (r(i) \bmod L_{\text{loc}}) \quad (\text{真实时间位置})
+$$
+
+判断 i 是 clean 还是 noisy:`r(i) < L_loc` 是 clean,`r(i) ≥ L_loc` 是 noisy。
+
+然后定义:
+$$
+M_{\text{nat}}(i, j) = M_{\text{TF}}(\pi(i), \pi(j))
+$$
+
+其中 $\pi$ 把 interleaved 索引映射回 logical (clean/noisy, 时间位置)。
+
+**关键**:$\pi$ 从来不 materialize 在 Q/K/V 张量上,只是在 mask predicate 里用整数运算算一下。`flex_attention` 把这个 predicate 编译进融合 kernel,执行起来跟 dense attention 一样快。
+
+→ **改的是 mask 函数,不改 attention 实现**。一行 flex_attention call,mask 是 Python 函数,JIT 编译。
+
+### Balanced SP 的另外两块拼图
+
+**1. SP-aware VAE 编码**(论文 Sec C):
+- 朴素 SP:每个 rank 都 encode 整段 raw video,O(F) 重复 P 次
+- Balanced SP:每个 rank 只 encode 自己负责时间段 X^(p) + **左 halo**(覆盖 VAE 时间感受野)
+- Encode 完丢掉 halo 输出,保留中间精确部分
+- 每 rank VAE 复杂度从 O(F) 降到 O(F/P + h)
+- config 里 `vae_halo_latents: 28`,即 halo 28 latent 帧
+
+**2. SP-aware Error Recycling**(论文 Sec C "SP-aware error recycling"):
+Error recycling buffer 用 (local block position, diffusion timestep) 二维 bucket 索引。在 SP 下:
+- Position 维度跟 DiT sequence 一样分片(rank p 只存自己负责的位置 bucket)
+- Buffer entries 在 warmup 阶段跨 DP rank 聚合(同 SP rank 的 DP 之间共享),不跨 SP rank
+- 不跨 SP 是因为别的 rank 错误对应的"位置"在当前 rank 不可见,replay 会 invalid
+
 ## 四、NVFP4 量化(论文 Sec 2.2, 3.1, 3.2)
 
 ### NVFP4 是什么
@@ -120,24 +188,114 @@ DMD 训练显存比 BF16 降到 **0.69×**(Table 2)。
 
 ## 五、Parallel KV Quantization (Sec 3.2)
 
-长 AR 视频生成,KV cache 随历史线性增长,瓶颈非常严重。
+### 痛点
 
-### 量化方案
+AR 长视频生成时,每生成一个 chunk 就把这个 chunk 的 K/V 写进 cache。视频越长 cache 越大:
+- 64s 视频 → 96 latent 帧 → ~150K tokens
+- Wan2.2-TI2V-5B 有 30 层,每层 12 heads × 128 head_dim
+- BF16 下 KV cache 显存:`2 × 150K × 12 × 128 × 2 bytes × 30 layers ≈ 27 GB`(单 batch)
 
-- 按 chunk 量化:每个 chunk `F_c = 8` 帧,`T_c = F_c · L_f` tokens
-- 每 chunk 的 K, V ∈ R^{T_c × H × d},reshape 成 R^{(T_c·H) × d},NVFP4 micro-block scaling
-- Key 用 **K-smoothing**:`K̄[t, h, :] = K[t, h, :] - mean_d(K[t, h, :])`(减去通道维均值)
+显存被 KV cache 吃掉一大半。
 
-### 内存收益
+### 量化方案的"按 chunk"是核心
 
-- BF16: `4 · T_c · H · d` bytes
-- NVFP4 chunk-quantized: `1.125 · T_c · H · d` bytes
-- **~3.6× 压缩比**
+不是 token-wise 量化,而是 **chunk-wise 量化**。意思是:每生成完一个 chunk(=8 latent 帧),把这个 chunk 整体 reshape 成一个矩阵,然后做 NVFP4 量化。
 
-### 配套 CUDA kernel
+```python
+# 单层、单 chunk 的 K/V 数据
+F_c = 8                              # 一个 chunk 8 帧
+L_f = 1560                           # Wan 每帧 1560 tokens (= 30×52 patch grid)
+T_c = F_c * L_f = 12480              # 一个 chunk 的 token 数
 
-- 因为用 sliding window + sink,每步可能访问多个 cached chunks
-- 写了 **custom parallel dequantization CUDA kernel**,把量化/反量化开销压到 < 2%
+K_chunk ∈ R^{T_c × H × d}            # H=12 heads, d=128 head_dim
+
+# Reshape 成 2D 矩阵以便 micro-block 量化
+K_2d = K_chunk.reshape(T_c * H, d)   # ∈ R^{(12480×12) × 128} = R^{149760 × 128}
+
+# NVFP4 micro-block scaling (16-element blocks)
+K_quantized = nvfp4_quantize(K_2d)
+```
+
+### Key 的 K-smoothing 预处理
+
+直接量化 K 误差大,论文用 **K-smoothing**:每个 token 的 K 向量先减去 head 内 channel 均值,再量化。
+
+$$
+\bar{K}_{\ell,c}[t, h, :] = K_{\ell,c}[t, h, :] - \frac{1}{d}\sum_{u=1}^{d} K_{\ell,c}[t, h, u]
+$$
+
+为什么对 K 做这个,V 不做?
+- K 通常含 systematic bias(各 head 学到的 "general direction"),减均值后分布更对称
+- 对称分布对 FP4 友好(FP4 范围 [-6, 6] 是对称的)
+- V 通常已经比较中心化,不需要
+
+### 内存收益的算式
+
+```
+BF16 (基线):
+  storage = 4 · T_c · H · d bytes        ← K, V 各 2 bytes × T_c·H·d 元素 = 4 T_c H d
+  = 4 × 12480 × 12 × 128 = 76.7 MB / layer / chunk
+
+NVFP4 chunk-quantized:
+  - 元素本身: T_c · H · d × 0.5 bytes (4-bit FP4) × 2 (K+V) = T_c · H · d bytes
+  - block scale: 每 16 元素一个 FP8 scale = T_c · H · d / 16 bytes × 2 (K+V)
+  - global scale: 1 个 FP32 / tensor (忽略)
+  - K-smoothing 的 mean: T_c · H × FP16 = 2 T_c H bytes (忽略)
+  
+  storage ≈ T_c · H · d + T_c · H · d / 8 = 9/8 · T_c · H · d bytes
+  ≈ 17.6 MB / layer / chunk
+```
+
+**压缩比 ≈ 4 / 1.125 = 3.56×**(论文报 3.6×)。
+
+### 真实存储布局(看代码 `causal_diffusion_inference.py:803-815`)
+
+```python
+# 每层一个 dict
+kv_cache_pos.append({
+    "k": [clone_quantized_tensor(zero_qt) for _ in range(max_blocks)],
+                # ↑ list of 量化后的 chunk K,每个是一个 NVFP4 QuantizedTensor
+    "v": [...],                       # 同 K
+    "quantized": True,
+    "block_token_size": T_c,
+    "max_blocks": 例如 5,             # sliding window 装 5 个 chunk
+    "num_heads": 12,
+    "num_filled_blocks": 0,           # 当前装了几个 chunk
+    "global_end_index": [0],          # 全局 token 末位
+    "local_end_index": [0],           # cache 内 token 末位
+    "pinned_start": [-1],             # multi-shot sink 用
+    "pinned_len": [0],
+})
+```
+
+**关键观察**:
+- K/V 是 **list of 量化 chunks**,不是一个大 tensor。chunk 是量化的最小单位
+- 当 cache 满需要驱逐时,**整 chunk 驱逐**,不需要重新量化任何东西
+- 当 attention 需要访问时,**按需 dequantize**:一次 attention 可能访问多个 chunks(因为有 sink + sliding window)
+
+### 为什么叫 "Parallel"
+
+每次 attention 都要把窗口内的多个 chunks 反量化拼起来才能算 Q·K^T。如果串行 dequant,这会成为瓶颈。LongLive 2.0 写了 **parallel dequantization CUDA kernel**,把多个 chunks 同时反量化:
+
+```
+chunk 0 ──┐
+chunk 1 ──┼── parallel dequant kernel ── BF16 K, V ──> attention
+chunk 2 ──┤
+sink chunk ──┘
+```
+
+把量化 / 反量化总开销压到 **< 2%**(论文 Sec 3.2 末)。
+
+### Inference 显存收益(Table 3)
+
+| 设置 | 64s 视频 Peak Memory |
+|------|---------------------|
+| BF16 | 112.9 GB |
+| NVFP4(权重) | 96.0 GB |
+| **+ NVFP4 KV Cache** | **57.6 GB ~ 19.4 GB**(差异是是否 KV 量化决定的) |
+| + Async Decoding | 19.4 GB |
+
+KV 量化是从"权重量化后"到"19.4 GB 可在单卡跑 64s"的关键一步。
 
 ## 六、Multi-Shot Attention Sink(论文 Sec 4.2, Fig 7)
 
@@ -167,22 +325,93 @@ $$
 - 跟 chunk-wise prompting 天然契合:prompt 切换 `p_k → p'_k` = 场景切换 = `A_s` 重绑 + cross-attention cache 重置
 - 全局 sink 和之前的历史完全不动
 
-### 代码位置
+### 场景切换怎么判断:**纯 prompt-based,不是检测**
+
+这是看代码才能搞清楚的细节(论文里写得隐晦)。`pipeline/causal_diffusion_inference.py:977-990`:
+
+```python
+def _is_shot_boundary(self, raw_prompts, chunk_index):
+    if chunk_index == 0:
+        return False
+    if chunk_index >= len(raw_prompts):
+        return False
+    prompt = raw_prompts[chunk_index]
+    return isinstance(prompt, str) and prompt.startswith(self.scene_cut_prefix)
+```
+
+`utils/dataset.py:22`:
+```python
+DEFAULT_SCENE_CUT_PREFIX = "The scene transitions. "
+```
+
+**意思**:用户输入的 prompt 序列里,新场景的第一个 chunk 的 prompt **必须以 `"The scene transitions. "` 开头**,模型才能识别为场景切换。例如:
+
+```python
+prompts = [
+    "A man walks slowly in a sunny park.",                              # shot 1, chunk 0
+    "A man walks slowly in a sunny park.",                              # shot 1, chunk 1
+    "The scene transitions. A woman drinks coffee in a cafe.",          # shot 2 starts ← 场景切换
+    "A woman drinks coffee in a cafe.",                                 # shot 2, chunk 1
+    "The scene transitions. A street vendor sells flowers at night.",   # shot 3 starts ← 场景切换
+    ...
+]
+```
+
+→ **场景切换是用户显式标注的,不是模型自动检测**。这跟训练数据集生成方式一致:论文 Sec B 说每个长视频先切 shot、各自 caption,再合并 — 自然地保留了 shot 边界。训练时数据集里就带这个标记前缀,模型学会"看到 transitions 前缀 = 新场景"。
+
+### RoPE 需要改吗:**需要,加跨镜头相位偏移**
+
+如果不动 RoPE,两个不同镜头的帧位置编码是连续的(例如 shot 1 的最后帧 t=14,shot 2 第一帧 t=15)。模型会以为 shot 2 是 shot 1 的"下一帧",硬要保持视觉连续性,产生"奇怪的过渡帧"。
+
+LongLive 2.0 引入 **`multi_shot_rope_offset` φ**(config 里默认 8)。每检测到一次场景切换,RoPE 的 temporal 偏移 += φ:
+
+`pipeline/causal_diffusion_inference.py:442-552`:
+```python
+current_shot_index = 0
+phi = self.multi_shot_rope_offset    # = 8
+self._dit_model.rope_temporal_offset = 0.0
+
+for chunk_index in range(...):
+    is_shot_boundary = self._is_shot_boundary(raw_prompts, chunk_index)
+    if is_shot_boundary and phi != 0.0:
+        current_shot_index += 1
+        self._dit_model.rope_temporal_offset = current_shot_index * phi
+        # 后续这个镜头的所有帧,RoPE 计算时都加上这个偏移
+```
+
+例子:
+```
+shot 1, frames 0~7:    RoPE position = 0, 1, 2, ..., 7      (offset=0)
+shot 2 开始 (offset += 8):
+shot 2, frames 8~15:   RoPE position = 16, 17, 18, ..., 23  (实际 8~15 + offset=8)
+                                       ↑ 跳过 8 个位置
+shot 3 开始 (offset += 8):
+shot 3, frames 16~23:  RoPE position = 32, 33, 34, ..., 39
+```
+
+→ 这就告诉模型"shot 之间的 RoPE 位置是非连续的",学到了"看到位置跳变就是场景切换",自然产生镜头切换效果。
+
+### 代码位置速查
 
 `pipeline/causal_diffusion_inference.py`:
-- `self.multi_shot_sink = ...` (line 104)
-- `self.global_sink_size` (line 106)
-- `_set_all_modules_global_sink_size` (line 968)
-- 镜头 sink 的指针管理 (around line 995-1042)
+- `multi_shot_sink` config 读取: line 104
+- `global_sink_size` 派生: line 106
+- `multi_shot_rope_offset`: line 107-110
+- `_is_shot_boundary` (prompt-based): line 977-990
+- `_is_scene_cut` (sink-related): line 992-999
+- `_update_sink_for_scene_cut` (legacy copy-to-front): line 1001-1018
+- `_pin_current_chunk` (零拷贝镜头 sink): line 1020-1036
+- RoPE offset 更新循环: line 442-554
+- `_set_all_modules_global_sink_size`: line 968
 
 ### 配置项
 
 ```yaml
 # train_ar.yaml
 inference:
-  sink_size: 0                  # shot-level sink 大小
+  sink_size: 0                  # shot-level sink 大小(0=禁用,实验用)
   multi_shot_sink: true         # 启用 multi-shot 模式
-  multi_shot_rope_offset: 8     # 跨镜头 RoPE 偏移,标识场景切换
+  multi_shot_rope_offset: 8     # 跨镜头 RoPE 偏移 φ
 ```
 
 ## 七、Asynchronous Streaming Decoding(Sec 3.3)
