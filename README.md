@@ -24,9 +24,9 @@ paper_read/
 
 ## 论文索引
 
-| 方向 | 论文 | 简称 | 发表 | 一句话 |
-|------|------|------|------|--------|
-| [video_generation](./video_generation/) | LongLive-2.0: An NVFP4 Parallel Infrastructure for Long Video Generation | [longlive2](./video_generation/longlive2/analysis.md) | NVIDIA, 2026 | NVFP4 量化 + Balanced 序列并行,用真长视频 teacher-forcing 直接微调,绕过 CausVid/Self-Forcing 的 ODE Init + DMD 多阶段,辅以 LoRA 实现 4→2 步,Multi-Shot Sink 支持多镜头实时长视频 |
+| 方向 | 论文 | 简称 | 发表 | 链接 | 一句话 |
+|------|------|------|------|------|--------|
+| [video_generation](./video_generation/) | LongLive-2.0: An NVFP4 Parallel Infrastructure for Long Video Generation | [longlive2](./video_generation/longlive2/analysis.md) | NVIDIA, 2026 | [github](https://github.com/NVlabs/LongLive) | NVFP4 量化 + Balanced 序列并行,用真长视频 teacher-forcing 直接微调,绕过 CausVid/Self-Forcing 的 ODE Init + DMD 多阶段,辅以 LoRA 实现 4→2 步,Multi-Shot Sink 支持多镜头实时长视频 |
 
 ## 阅读体系
 
@@ -46,6 +46,10 @@ paper_read/
 2. 在方向目录下新建论文短名目录
 3. 创建 `analysis.md` 写解读
 4. 更新本文件的总索引表 + 方向目录的 README
+
+### 链接约定
+
+索引表里的"链接"列优先级:**官方项目主页 > GitHub > arXiv**。一般加 GitHub,没有就加 arXiv。
 
 ## 当前进度
 

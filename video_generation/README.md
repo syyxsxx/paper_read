@@ -54,11 +54,11 @@
 
 ## 论文列表
 
-| 简称 | 标题 | 发表 | 状态 |
-|------|------|------|------|
-| [longlive2](./longlive2/analysis.md) | LongLive-2.0: An NVFP4 Parallel Infrastructure for Long Video Generation | NVIDIA, 2026 | ✅ |
-| self_forcing | Self Forcing: Bridging the Train-Test Gap in Autoregressive Video Diffusion | NeurIPS 2025 (Adobe) | ⏳ |
-| causvid | From Slow Bidirectional to Fast Autoregressive Video Diffusion Models | CVPR 2025 (MIT/Adobe) | ⏳ |
+| 简称 | 标题 | 发表 | 链接 | 状态 |
+|------|------|------|------|------|
+| [longlive2](./longlive2/analysis.md) | LongLive-2.0: An NVFP4 Parallel Infrastructure for Long Video Generation | NVIDIA, 2026 | [github](https://github.com/NVlabs/LongLive) | ✅ |
+| self_forcing | Self Forcing: Bridging the Train-Test Gap in Autoregressive Video Diffusion | NeurIPS 2025 (Adobe) | [github](https://github.com/guandeh17/Self-Forcing) | ⏳ |
+| causvid | From Slow Bidirectional to Fast Autoregressive Video Diffusion Models | CVPR 2025 (MIT/Adobe) | [github](https://github.com/tianweiy/CausVid) | ⏳ |
 
 ## 阅读建议顺序
 
