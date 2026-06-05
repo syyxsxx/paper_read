@@ -174,8 +174,9 @@ block 0  block 1  block 2  block 3  block 4  block 5 ...
 
 ### Gated DeltaNet (GDN) 细节
 
-不是普通线性注意力,而是 **delta-rule 修正型** linear attention。对第 f 帧:
+不是普通线性注意力,而是 **delta-rule 修正型** linear attention。完整推导(从 standard softmax → linear → DeltaNet → GDN)见后文 **§四.5**。这里只列核心公式。
 
+**逐帧更新**:
 $$
 S_f^{kv} = \alpha_f S_{f-1}^{kv} (I - \beta_f \hat{k}_f \hat{k}_f^\top) + \beta_f v_f \hat{k}_f^\top
 $$
@@ -183,15 +184,156 @@ $$
 S_f^z = \alpha_f S_{f-1}^z (I - \beta_f k_f k_f^\top) + \beta_f k_f^\top
 $$
 
+**输出**:$o_f = W_o (g_f \odot \frac{S_f^{kv} \hat{q}_f}{(S_f^z)^\top q_f + \epsilon})$
+
 其中:
-- $\alpha_f \in \mathbb{R}$ — decay gate(衰减门)
-- $\beta_f \in \mathbb{R}^N$ — write gate(写入门)
-- $\hat{k}_f$ — RoPE 后的 key
-- 输出:$o_f = W_o (g_f \odot \frac{S_f^{kv} \hat{q}_f}{(S_f^z)^\top q_f + \epsilon})$,$g_f$ 是 output gate
+- $\alpha_f \in (0,1)$ — decay gate(每帧一个标量,头共享)
+- $\beta_f$ — write gate(每帧 × 每 spatial token,sigmoid 输出)
+- $\hat{k}_f$ — RoPE 后的 key(只用在 numerator $S^{kv}$,**不用在 denominator $S^z$**——论文称 "mass conservation")
+- $g_f$ — output gate(silu)
 
 **关键 trick — delta-rule**:不是直接把 $v_f k_f^\top$ 累加,而是先擦除现有状态在 $k_f$ 方向上的投影(乘 $I - \beta_f k k^\top$),再写新值。这是**纠错型记忆**而非简单累加,对长序列更鲁棒。
 
 代码:`diffusion/model/nets/sana_gdn_blocks.py:372` (`class GDN`),双向版本在 `:881` (`class BidirectionalGDN`)。
+
+## 四.5、Linear Attention 完整推导 + GDN 代码精读
+
+### Step 1: 从 softmax attention 到 linear attention
+
+Softmax attention 公式:
+$$
+o_i = \sum_j \frac{\exp(q_i^T k_j)}{\sum_l \exp(q_i^T k_l)} v_j
+$$
+复杂度 O(n²d),因为必须算 n×n 的相似度矩阵。
+
+线性注意力的 trick:把 $\exp(q^T k)$ 近似成 $\phi(q)^T \phi(k)$(SANA 用 ReLU)。代入后**φ(q) 可以从求和里提出来**:
+$$
+o_i = \frac{\phi(q_i)^T \sum_j v_j \phi(k_j)^T}{\phi(q_i)^T \sum_l \phi(k_l)}
+$$
+
+定义两个累积状态:
+- 分子:$S^{kv} = \sum_j v_j \phi(k_j)^T \in \mathbb{R}^{d \times d}$
+- 分母:$S^z = \sum_j \phi(k_j) \in \mathbb{R}^d$
+
+则:$o_i = S^{kv} \phi(q_i) / ((S^z)^T \phi(q_i) + \epsilon)$。
+
+**关键收益**:state 是固定 d×d 大小,不随 n 增长 → **复杂度 O(nd²),对 n 线性**。
+
+### Step 2: 增量更新(因果版)
+
+$$
+S_i^{kv} = S_{i-1}^{kv} + v_i \phi(k_i)^T \quad \text{(累加一个 d×d 外积)}
+$$
+
+**致命问题**:无脑累加,旧信息永远擦不掉。视频里早期帧的内容会永远累积,新内容只能叠加。
+
+### Step 3: Delta Rule — 用"预测-修正"替换累加
+
+DeltaNet 的核心思想:**把 state 看成一个 key→value 的关联记忆库**。来一帧新的 (k_f, v_f),先用现有 state 查 k_f 应该对应什么 value,只写差额:
+
+1. 预测:$\hat{v}_f = S_{f-1}^{kv} \phi(k_f)$
+2. 残差(带 write gate β):$\delta_f = \beta_f (v_f - \hat{v}_f)$
+3. 写入:$S_f^{kv} = S_{f-1}^{kv} + \delta_f \phi(k_f)^T$
+
+展开:
+$$
+S_f^{kv} = S_{f-1}^{kv} \underbrace{(I - \beta_f \phi(k_f) \phi(k_f)^T)}_{\text{擦除 k 方向旧投影}} + \underbrace{\beta_f v_f \phi(k_f)^T}_{\text{写入新值}}
+$$
+
+这就是 **`(I - β k k^T)` 的来历**。两种等价理解:
+- **乘性视角**:`(I - β k k^T)` 是 rank-1 投影修正算子,削弱 state 在 k 方向上的成分
+- **加性视角**:`δ = β (v - v_pred)`,写新值同时擦掉旧的同方向预测
+
+### Step 4: Gated DeltaNet (GDN) = DeltaNet + decay
+
+加上全局 decay α,得到 SANA-Streaming 用的形式:
+$$
+\boxed{S_f^{kv} = \alpha_f \cdot S_{f-1}^{kv} (I - \beta_f \hat{k}_f \hat{k}_f^\top) + \beta_f v_f \hat{k}_f^\top}
+$$
+
+### 代码精读 1:`torch_recurrent_sana_gdn`(慢但语义清晰)
+
+`sana_gdn_blocks.py:96-195`,这是教学版:
+
+```python
+state_kv = zeros(B, H, D, D)    # 初始状态
+state_z  = zeros(B, H, D, 1)
+
+for t in range(T):                          # 跨帧顺序 scan
+    qt, kt, vt = q[:,:,t], k[:,:,t], v[:,:,t]
+    qrt, krt   = q_rot[:,:,t], k_rot[:,:,t]
+    bt, gt     = beta[:,:,t], decay[:,:,t]
+
+    # Decay
+    state_kv = state_kv * gt
+    state_z  = state_z  * gt
+
+    # Delta-rule KV update
+    v_pred  = matmul(state_kv, krt)              # 预测 v
+    delta_v = (vt - v_pred) * bt                 # 残差 × β
+    state_kv = state_kv + matmul(delta_v, krt.T) # 写残差
+
+    # Output
+    out_num = matmul(state_kv, qrt)              # 分子: S · q_rot
+    out_den = matmul(state_z.T, qt)              # 分母: (S^z)^T · q
+
+return out_num_stacked / (out_den_stacked + eps)
+```
+
+**逐行对公式**:
+| 公式 | 代码 |
+|------|------|
+| $\hat{v}_f = S_{f-1}^{kv} \hat{k}_f$ | `v_pred = matmul(state_kv, krt)` |
+| $\delta_f = \beta_f (v_f - \hat{v}_f)$ | `delta_v = (vt - v_pred) * bt` |
+| $S_f^{kv} \mathrel{+}= \delta_f \hat{k}_f^T$ | `state_kv = state_kv + matmul(delta_v, krt.T)` |
+| $o_f = S_f^{kv} \hat{q}_f / ((S_f^z)^T q_f + \epsilon)$ | `out_num / out_den` |
+
+### 代码精读 2:`torch_chunk_sana_gdn`(实际生产用的快版)
+
+`sana_gdn_blocks.py:199-312`,关键 trick——把 update 改写成 $S_t = S_{t-1} W_t + U_t$:
+
+```python
+# 预计算两个矩阵 (帧并行,无跨帧依赖):
+W_kv = decay * (I - β · k_rot @ k_rot^T)    # [B,H,T,D,D] decay × delete operator
+U_kv = β · v @ k_rot^T                       # [B,H,T,D,D] new info
+
+# 跨帧 scan 只剩一个 matmul + 加:
+for t in range(T):
+    state_kv = state_kv @ W_kv[:,:,t] + U_kv[:,:,t]
+```
+
+**为什么快**:
+- W_t, U_t 的计算**完全帧并行**(GPU 大并发)
+- scan 阶段每步一次 D×D matmul,可保持在 SRAM
+- 可按 chunk 切(`chunk_size=21`)进一步并行
+
+这正好对应论文 Sec 2.3 Eq (4)(5)。
+
+### 没有 N×N 矩阵!
+
+**整个 forward 里最大的中间张量是 `state_kv: [B, H, D, D]`(D ≈ 32-128)**。没有 `[N, N]`(N 是 token 数,几万)。**复杂度 O(T·S·D²),对 N 完全线性**——这就是"线性注意力"的字面含义。
+
+### 完整 GDN forward 还有什么(`forward` at `sana_gdn_blocks.py:733`)
+
+除了上面的核心 update rule,完整的 GDN block 还有这些额外设计:
+
+1. **ReLU kernel**:`q = relu(q); k = relu(k)`。强制非负,保证 normalizer 不会负数,且分布稀疏
+2. **K 的 short conv**:`k = depthwise_Conv1d(k along T, kernel=4)`,**让相邻几帧的 k 互相平滑**——防止 delta rule 把单帧的剧变全擦掉
+3. **RoPE 只在分子**:`q_rot, k_rot` 用在 $S^{kv}$,**未 RoPE 的 q, k 用在 $S^z$ normalizer**。论文称 "mass conservation"——如果 normalizer 也加 RoPE,就不再是无偏的 mass
+4. **β per-token, α per-frame**:write gate 在 spatial 维度可以不同强度,decay gate 全帧统一
+5. **State 强制 FP32**:`q, k, v, β, decay = .float()`,长时间 recurrent scan 对数值精度敏感
+6. **Output gate**:`out = silu(W_g · x) * out`,门控 SwiGLU 风格
+
+### GDN vs 普通线性注意力对比
+
+| 痛点 | 普通线性注意力 | GDN |
+|------|----------------|-----|
+| 老信息无法擦除 | ❌ 永远累加 | ✅ delta rule 自动擦旧投影 |
+| 全局衰减 | ❌ 无 | ✅ decay gate α |
+| 写入控制 | ❌ 全部硬累加 | ✅ write gate β |
+| 数值稳定 | ⚠️ 容易爆 | ✅ RoPE only on numerator + FP32 scan + ReLU kernel |
+
+**本质**:GDN 把线性注意力的累加 state 升级成一个**动态关联记忆库**。每帧来一个 (k, v),先查"用现在记忆库查 k 会得到什么 v_pred",只把差额 (v - v_pred) 写进去。这跟 80 年代 Hopfield network、fast weight memory 是同源思路(参见论文引用 [21] "Linear transformers are secretly fast weight programmers")。
 
 ### Softmax block:Window + Sink
 
