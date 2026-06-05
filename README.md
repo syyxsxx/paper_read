@@ -27,6 +27,7 @@ paper_read/
 | 方向 | 论文 | 简称 | 发表 | 链接 | 一句话 |
 |------|------|------|------|------|--------|
 | [video_generation](./video_generation/) | LongLive-2.0: An NVFP4 Parallel Infrastructure for Long Video Generation | [longlive2](./video_generation/longlive2/analysis.md) | NVIDIA, 2026 | [github](https://github.com/NVlabs/LongLive) | NVFP4 量化 + Balanced 序列并行,用真长视频 teacher-forcing 直接微调,绕过 CausVid/Self-Forcing 的 ODE Init + DMD 多阶段,辅以 LoRA 实现 4→2 步,Multi-Shot Sink 支持多镜头实时长视频 |
+| [video_generation](./video_generation/) | SANA-Streaming: Real-time Streaming Video Editing with Hybrid Diffusion Transformer | [sana_streaming](./video_generation/sana_streaming/analysis.md) | NVIDIA, 2026 | [project](https://nvlabs.github.io/Sana/Streaming) | Hybrid DiT (GDN 线性 + Softmax window/sink) + Cycle-Reverse 正则化(用反向编辑 prompt 绕过"无长编辑对"难题)+ Triton GDN kernel + AutoML 风格 MPQ 量化搜索,RTX 5090 单卡跑 1280×704 V2V 编辑 24 FPS |
 
 ## 阅读体系
 

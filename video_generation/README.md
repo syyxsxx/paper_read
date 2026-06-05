@@ -54,11 +54,12 @@
 
 ## 论文列表
 
-| 简称 | 标题 | 发表 | 链接 | 状态 |
-|------|------|------|------|------|
-| [longlive2](./longlive2/analysis.md) | LongLive-2.0: An NVFP4 Parallel Infrastructure for Long Video Generation | NVIDIA, 2026 | [github](https://github.com/NVlabs/LongLive) | ✅ |
-| self_forcing | Self Forcing: Bridging the Train-Test Gap in Autoregressive Video Diffusion | NeurIPS 2025 (Adobe) | [github](https://github.com/guandeh17/Self-Forcing) | ⏳ |
-| causvid | From Slow Bidirectional to Fast Autoregressive Video Diffusion Models | CVPR 2025 (MIT/Adobe) | [github](https://github.com/tianweiy/CausVid) | ⏳ |
+| 简称 | 标题 | 任务 | 发表 | 链接 | 状态 |
+|------|------|------|------|------|------|
+| [longlive2](./longlive2/analysis.md) | LongLive-2.0: An NVFP4 Parallel Infrastructure for Long Video Generation | 长 T2V 多镜头 | NVIDIA, 2026 | [github](https://github.com/NVlabs/LongLive) | ✅ |
+| [sana_streaming](./sana_streaming/analysis.md) | SANA-Streaming: Real-time Streaming Video Editing with Hybrid Diffusion Transformer | 实时长 V2V 编辑 | NVIDIA+MIT 等, 2026 | [project](https://nvlabs.github.io/Sana/Streaming) | ✅ |
+| self_forcing | Self Forcing: Bridging the Train-Test Gap in Autoregressive Video Diffusion | 长 T2V | NeurIPS 2025 (Adobe) | [github](https://github.com/guandeh17/Self-Forcing) | ⏳ |
+| causvid | From Slow Bidirectional to Fast Autoregressive Video Diffusion Models | 短 T2V | CVPR 2025 (MIT/Adobe) | [github](https://github.com/tianweiy/CausVid) | ⏳ |
 
 ## 阅读建议顺序
 
@@ -66,6 +67,7 @@
 1. **CausVid** 先建立基本框架(双向→因果、ODE Init、DMD)
 2. **Self-Forcing** 看 CausVid 的痛点(train-test gap)是怎么解的
 3. **LongLive 2.0** 看怎么用工程基础设施反推算法精简
+4. **SANA-Streaming** 看 V2V 编辑(任务转向)+ Hybrid 架构 + Cycle-Reverse 训练正则
 
 ## 关键对照表(三篇横向对比)
 
