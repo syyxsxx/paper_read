@@ -28,6 +28,7 @@ paper_read/
 |------|------|------|------|------|--------|
 | [video_generation](./video_generation/) | LongLive-2.0: An NVFP4 Parallel Infrastructure for Long Video Generation | [longlive2](./video_generation/longlive2/analysis.md) | NVIDIA, 2026 | [github](https://github.com/NVlabs/LongLive) | NVFP4 量化 + Balanced 序列并行,用真长视频 teacher-forcing 直接微调,绕过 CausVid/Self-Forcing 的 ODE Init + DMD 多阶段,辅以 LoRA 实现 4→2 步,Multi-Shot Sink 支持多镜头实时长视频 |
 | [video_generation](./video_generation/) | SANA-Streaming: Real-time Streaming Video Editing with Hybrid Diffusion Transformer | [sana_streaming](./video_generation/sana_streaming/analysis.md) | NVIDIA, 2026 | [project](https://nvlabs.github.io/Sana/Streaming) | Hybrid DiT (GDN 线性 + Softmax window/sink) + Cycle-Reverse 正则化(用反向编辑 prompt 绕过"无长编辑对"难题)+ Triton GDN kernel + AutoML 风格 MPQ 量化搜索,RTX 5090 单卡跑 1280×704 V2V 编辑 24 FPS |
+| [multimodal](./multimodal/) | Cosmos 3: Omnimodal World Models for Physical AI | [cosmos3](./multimodal/cosmos3/analysis.md) | NVIDIA, 2026 | [github](https://github.com/nvidia/cosmos) | NVIDIA 的 Physical AI 通用 backbone。MoT 双塔架构(Reasoner + Generator)统一 5 模态(语言/图/视/音/动作),3D MRoPE + 绝对时间调制对齐多模态时间轴,unified action representation 跨 5 种 embodiment。2048×GB200 训出来的 64B Super 模型,T2I/I2V 开源第一 + RoboArena 第一 |
 
 ## 阅读体系
 
@@ -56,5 +57,8 @@ paper_read/
 
 - ✅ video_generation
   - ✅ LongLive 2.0
+  - ✅ SANA-Streaming
   - ⏳ Self-Forcing(已通过对话讨论,待整理成 markdown)
   - ⏳ CausVid(已通过对话讨论,待整理成 markdown)
+- ✅ multimodal
+  - ✅ Cosmos 3
