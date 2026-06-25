@@ -8,25 +8,25 @@
                 Wan2.x bidirectional diffusion (Alibaba)
                             │ (base model, 50-step bidirectional)
                             │
-        ┌───────────────────┼─────────────────────────────┐
-        ▼                   ▼                             ▼
-   CausVid (2024)      Self-Forcing (2025)        LongLive 2.0 (2026)
-   CVPR 2025           NeurIPS 2025               NVIDIA
+        ┌───────────────────┼─────────────────────────────┬──────────────────────────┐
+        ▼                   ▼                             ▼                          ▼
+   CausVid (2024)      Self-Forcing (2025)        LongLive 2.0 (2026)         Helios (2026)
+   CVPR 2025           NeurIPS 2025               NVIDIA                      ByteDance + PKU
    MIT + Adobe         Adobe + UT Austin
-   │                   │                          │
-   ODE Init            ODE Init                   AR Training (teacher forcing)
-   ↓                   ↓                          ↓ (long video, multi-shot)
-   AR Initial          DMD/SiD/GAN                AR Model
-   ↓                   ↓                          ↓
-   DMD                 AR Model                   DMD-LoRA (旁路)
+   │                   │                          │                            │
+   ODE Init            ODE Init                   AR Training (teacher forcing) Unified History Injection
+   ↓                   ↓                          ↓ (long video, multi-shot)    ↓ (Guidance Attention)
+   AR Initial          DMD/SiD/GAN                AR Model                     MTMP + PyUPC (token压缩)
+   ↓                   ↓                          ↓                            ↓
+   DMD                 AR Model                   DMD-LoRA (旁路)              AHD (3-step)
    ↓                                              ↓
    AR Model            (Rolling KV)              Few-step
    
-   ❌ short-only       ✅ long extrapolation     ✅ long native
-   ❌ DF train-gap     ✅ self-rollout           ✅ teacher forcing + error recycling
-   ❌ data-needed      ✅ data-free              ❌ data-needed (long videos)
-                                                  ✅ NVFP4 infra
-                                                  ✅ multi-shot sink
+   ❌ short-only       ✅ long extrapolation     ✅ long native               ✅ long native
+   ❌ DF train-gap     ✅ self-rollout           ✅ teacher forcing + recycle  ✅ pure teacher forcing
+   ❌ data-needed      ✅ data-free              ❌ data-needed               ❌ data-needed
+                                                  ✅ NVFP4 infra               ✅ no causal mask
+                                                  ✅ multi-shot sink            ✅ 19.5 FPS @14B/H100
 ```
 
 ## 主线脉络
@@ -58,6 +58,7 @@
 |------|------|------|------|------|------|
 | [longlive2](./longlive2/analysis.md) | LongLive-2.0: An NVFP4 Parallel Infrastructure for Long Video Generation | 长 T2V 多镜头 | NVIDIA, 2026 | [github](https://github.com/NVlabs/LongLive) | ✅ |
 | [sana_streaming](./sana_streaming/analysis.md) | SANA-Streaming: Real-time Streaming Video Editing with Hybrid Diffusion Transformer | 实时长 V2V 编辑 | NVIDIA+MIT 等, 2026 | [project](https://nvlabs.github.io/Sana/Streaming) | ✅ |
+| [helios](./helios/analysis.md) | Helios: Real Real-Time Long Video Generation Model | 实时长 T2V/I2V/V2V | ByteDance+PKU, 2026 | [project](https://pku-yuangroup.github.io/Helios-Page) | ✅ |
 | self_forcing | Self Forcing: Bridging the Train-Test Gap in Autoregressive Video Diffusion | 长 T2V | NeurIPS 2025 (Adobe) | [github](https://github.com/guandeh17/Self-Forcing) | ⏳ |
 | causvid | From Slow Bidirectional to Fast Autoregressive Video Diffusion Models | 短 T2V | CVPR 2025 (MIT/Adobe) | [github](https://github.com/tianweiy/CausVid) | ⏳ |
 
