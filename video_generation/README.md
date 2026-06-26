@@ -59,6 +59,7 @@
 | [longlive2](./longlive2/analysis.md) | LongLive-2.0: An NVFP4 Parallel Infrastructure for Long Video Generation | 长 T2V 多镜头 | NVIDIA, 2026 | [github](https://github.com/NVlabs/LongLive) | ✅ |
 | [sana_streaming](./sana_streaming/analysis.md) | SANA-Streaming: Real-time Streaming Video Editing with Hybrid Diffusion Transformer | 实时长 V2V 编辑 | NVIDIA+MIT 等, 2026 | [project](https://nvlabs.github.io/Sana/Streaming) | ✅ |
 | [helios](./helios/analysis.md) | Helios: Real Real-Time Long Video Generation Model | 实时长 T2V/I2V/V2V | ByteDance+PKU, 2026 | [project](https://pku-yuangroup.github.io/Helios-Page) | ✅ |
+| [seedance2](./seedance2/analysis.md) | Seedance 2.0: Advancing Video Generation for World Complexity | 多模态 T2V/I2V/R2V | ByteDance Seed, 2026 | [project](https://seed.bytedance.com/seedance2_0) | ✅ |
 | self_forcing | Self Forcing: Bridging the Train-Test Gap in Autoregressive Video Diffusion | 长 T2V | NeurIPS 2025 (Adobe) | [github](https://github.com/guandeh17/Self-Forcing) | ⏳ |
 | causvid | From Slow Bidirectional to Fast Autoregressive Video Diffusion Models | 短 T2V | CVPR 2025 (MIT/Adobe) | [github](https://github.com/tianweiy/CausVid) | ⏳ |
 
