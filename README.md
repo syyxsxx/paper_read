@@ -32,6 +32,7 @@ paper_read/
 | [video_generation](./video_generation/) | Helios: Real Real-Time Long Video Generation Model | [helios](./video_generation/helios/analysis.md) | ByteDance+PKU, 2026 | [project](https://pku-yuangroup.github.io/Helios-Page) | 第一个单卡 H100 跑到 19.5 FPS 的 14B 视频生成模型。不用 causal mask/KV-cache/量化/self-forcing,靠 Unified History Injection + Guidance Attention 保持双向推理,Multi-Term Memory Patchification(8×) + Pyramid UPC(2.3×)把 token 算力压到 1.3B 级,Relative RoPE + First-Frame Anchor + Frame-Aware Corrupt 替代 self-rollout 抗漂移 |
 | [video_generation](./video_generation/) | Seedance 2.0: Advancing Video Generation for World Complexity | [seedance2](./video_generation/seedance2/analysis.md) | ByteDance Seed, 2026 | [project](https://seed.bytedance.com/seedance2_0) | 统一多模态音视频生成（文本/图像/音频/视频 4 路输入，原生 720p 双声道三轨音频）；R2V 支持 20/22 任务类型业界最全，独家视觉特效引用 + 续写/延伸；Arena.AI T2V #1 (1450 Elo) + I2V #1 (1449 Elo)；产品技术报告，不披露架构 |
 | [inference_acceleration](./inference_acceleration/) | Timestep Embedding Tells: It's Time to Cache for Video Diffusion Model | [teacache](./inference_acceleration/teacache/analysis.md) | CVPR 2025, UCAS+Alibaba | [github](https://github.com/ali-vilab/TeaCache) | training-free 缓存加速。用 timestep-embedding 调制后 noisy input 的累积相对 L1 距离(经多项式 rescale)当 indicator,自适应跳过 DiT 计算、复用残差,2–6× 加速质量近乎无损。代价:系数需离线按模型标定,且与 few-step 蒸馏模型互斥 |
+| [llm](./llm/) | On-Policy Distillation | [on_policy_distillation](./llm/on_policy_distillation/blog_zh.md) | Thinking Machines Lab, 2025-10 | [blog](https://thinkingmachines.ai/blog/on-policy-distillation/) | 在策略蒸馏兼得 RL 在策略采样与 SFT 密集监督之长：学生自采轨迹 + 教师逐 token 反向 KL 打分，相比 RL 节省 9–30× 计算，可用于推理能力蒸馏（AIME'24 达 70%）和持续学习中的行为恢复（中间训练后接蒸馏恢复 IF-eval）|
 
 ## 阅读体系
 
@@ -69,3 +70,5 @@ paper_read/
   - ✅ Cosmos 3
 - ✅ inference_acceleration
   - ✅ TeaCache
+- ✅ llm
+  - ✅ On-Policy Distillation（博客翻译）
