@@ -6,4 +6,5 @@
 
 | 简称 | 标题 | 类型 | 来源 | 链接 | 状态 |
 |------|------|------|------|------|------|
-| [on_policy_distillation](./on_policy_distillation/blog_zh.md) | On-Policy Distillation | 博客 | Thinking Machines Lab, 2025-10 | [原文](https://thinkingmachines.ai/blog/on-policy-distillation/) | ✅ |
+| [gkd](./gkd/analysis.md) | On-Policy Distillation of Language Models: Learning from Self-Generated Mistakes | 论文 | Google DeepMind, ICLR 2024 | [arXiv](https://arxiv.org/abs/2306.13649) | ✅ |
+| [on_policy_distillation](./on_policy_distillation/blog_zh.md) | On-Policy Distillation（博客中文译） | 博客 | Thinking Machines Lab, 2025-10 | [原文](https://thinkingmachines.ai/blog/on-policy-distillation/) | ✅ |
