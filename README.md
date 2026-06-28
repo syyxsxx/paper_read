@@ -35,6 +35,7 @@ paper_read/
 | [llm](./llm/) | On-Policy Distillation of Language Models: Learning from Self-Generated Mistakes | [gkd](./llm/gkd/analysis.md) | Google DeepMind, ICLR 2024 | [arXiv](https://arxiv.org/abs/2306.13649) | GKD：把蒸馏视为模仿学习问题，学生在自采序列（on-policy）上接受教师逐 token 密集反馈，散度从 forward KL 推广到 reverse KL / JSD(β)，解决 exposure bias；摘要/翻译/推理提升 1.7–2.1×，可无缝接入 RL fine-tuning |
 | [llm](./llm/) | On-Policy Distillation（博客中文译） | [on_policy_distillation](./llm/on_policy_distillation/blog_zh.md) | Thinking Machines Lab, 2025-10 | [blog](https://thinkingmachines.ai/blog/on-policy-distillation/) | 在策略蒸馏兼得 RL 在策略采样与 SFT 密集监督之长：学生自采轨迹 + 教师逐 token 反向 KL 打分，相比 RL 节省 9–30× 计算，可用于推理能力蒸馏（AIME'24 达 70%）和持续学习中的行为恢复（中间训练后接蒸馏恢复 IF-eval）|
 | [image_generation](./image_generation/) | Rethinking Cross-Layer Information Routing in Diffusion Transformers | [dar](./image_generation/dar/analysis.md) | 南京大学+阿里巴巴, 2026 | [arXiv](https://arxiv.org/abs/2605.20708) | 把 DiT 的固定权重残差累加替换为 timestep-aware softmax 加权跨层聚合（DAR），信息论推导最优分块策略（S*=4），Triton kernel 11.5× 加速；600K 步达 SiT 1.75M 步 FID，与 REPA 叠加早期阶段再快 2× |
+| [multimodal](./multimodal/) | Representation Forcing for Bottleneck-Free Unified Multimodal Models | [rf](./multimodal/rf/analysis.md) | 港大+ByteDance Seed, 2026 | [project](https://yuqingwang1029.github.io/RepresentationForcing) | 将 UMM 理解编码器的表示离散化为 rep token，让解码器先 AR 预测再用 in-context 引导像素空间扩散，去掉外部 VAE 瓶颈；GenEval 从 0.25（naive pixel）→0.84，匹配 VAE-based SOTA，理解能力同时优于 VAE 版本 |
 
 ## 阅读体系
 
@@ -70,6 +71,7 @@ paper_read/
   - ⏳ CausVid(已通过对话讨论,待整理成 markdown)
 - ✅ multimodal
   - ✅ Cosmos 3
+  - ✅ Representation Forcing（港大+ByteDance Seed, 2026）
 - ✅ inference_acceleration
   - ✅ TeaCache
 - ✅ llm
