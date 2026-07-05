@@ -32,6 +32,7 @@ paper_read/
 | [video_generation](./video_generation/) | Helios: Real Real-Time Long Video Generation Model | [helios](./video_generation/helios/analysis.md) | ByteDance+PKU, 2026 | [project](https://pku-yuangroup.github.io/Helios-Page) | 第一个单卡 H100 跑到 19.5 FPS 的 14B 视频生成模型。不用 causal mask/KV-cache/量化/self-forcing,靠 Unified History Injection + Guidance Attention 保持双向推理,Multi-Term Memory Patchification(8×) + Pyramid UPC(2.3×)把 token 算力压到 1.3B 级,Relative RoPE + First-Frame Anchor + Frame-Aware Corrupt 替代 self-rollout 抗漂移 |
 | [video_generation](./video_generation/) | Seedance 2.0: Advancing Video Generation for World Complexity | [seedance2](./video_generation/seedance2/analysis.md) | ByteDance Seed, 2026 | [project](https://seed.bytedance.com/seedance2_0) | 统一多模态音视频生成（文本/图像/音频/视频 4 路输入，原生 720p 双声道三轨音频）；R2V 支持 20/22 任务类型业界最全，独家视觉特效引用 + 续写/延伸；Arena.AI T2V #1 (1450 Elo) + I2V #1 (1449 Elo)；产品技术报告，不披露架构 |
 | [inference_acceleration](./inference_acceleration/) | Timestep Embedding Tells: It's Time to Cache for Video Diffusion Model | [teacache](./inference_acceleration/teacache/analysis.md) | CVPR 2025, UCAS+Alibaba | [github](https://github.com/ali-vilab/TeaCache) | training-free 缓存加速。用 timestep-embedding 调制后 noisy input 的累积相对 L1 距离(经多项式 rescale)当 indicator,自适应跳过 DiT 计算、复用残差,2–6× 加速质量近乎无损。代价:系数需离线按模型标定,且与 few-step 蒸馏模型互斥 |
+| [inference_acceleration](./inference_acceleration/) | Multi-Resolution Flow Matching: Training-Free Diffusion Acceleration via Staged Sampling | [mrflow](./inference_acceleration/mrflow/analysis.md) | arXiv 2026-07, BUAA+NTU+ICT | [github](https://github.com/xliu-deep/MrFlow) | 四阶段分辨率 pipeline：低分辨率 latent 扩散(12 步)→ 像素空间 GAN 超分(Real-ESRGAN ×2)→ 低强度噪声注入(σ=0.12)→ 高分辨率单步精修。Qwen-Image 10.3× 加速 GenEval 0.86，叠加蒸馏可达 25× |
 | [llm](./llm/) | On-Policy Distillation of Language Models: Learning from Self-Generated Mistakes | [gkd](./llm/gkd/analysis.md) | Google DeepMind, ICLR 2024 | [arXiv](https://arxiv.org/abs/2306.13649) | GKD：把蒸馏视为模仿学习问题，学生在自采序列（on-policy）上接受教师逐 token 密集反馈，散度从 forward KL 推广到 reverse KL / JSD(β)，解决 exposure bias；摘要/翻译/推理提升 1.7–2.1×，可无缝接入 RL fine-tuning |
 | [llm](./llm/) | On-Policy Distillation（博客中文译） | [on_policy_distillation](./llm/on_policy_distillation/blog_zh.md) | Thinking Machines Lab, 2025-10 | [blog](https://thinkingmachines.ai/blog/on-policy-distillation/) | 在策略蒸馏兼得 RL 在策略采样与 SFT 密集监督之长：学生自采轨迹 + 教师逐 token 反向 KL 打分，相比 RL 节省 9–30× 计算，可用于推理能力蒸馏（AIME'24 达 70%）和持续学习中的行为恢复（中间训练后接蒸馏恢复 IF-eval）|
 | [image_generation](./image_generation/) | Rethinking Cross-Layer Information Routing in Diffusion Transformers | [dar](./image_generation/dar/analysis.md) | 南京大学+阿里巴巴, 2026 | [arXiv](https://arxiv.org/abs/2605.20708) | 把 DiT 的固定权重残差累加替换为 timestep-aware softmax 加权跨层聚合（DAR），信息论推导最优分块策略（S*=4），Triton kernel 11.5× 加速；600K 步达 SiT 1.75M 步 FID，与 REPA 叠加早期阶段再快 2× |
@@ -74,6 +75,7 @@ paper_read/
   - ✅ Representation Forcing（港大+ByteDance Seed, 2026）
 - ✅ inference_acceleration
   - ✅ TeaCache
+  - ✅ MrFlow（BUAA+NTU+ICT, 2026-07）
 - ✅ llm
   - ✅ GKD（ICLR 2024，Google DeepMind）
   - ✅ On-Policy Distillation（Thinking Machines 博客翻译）

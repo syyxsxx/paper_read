@@ -11,10 +11,14 @@
 │   ├── 蒸馏(LCM、DMD、CausVid …)        ← 见 video_generation 方向
 │   └── 量化 / 分布式
 │
-└── 缓存复用(本方向,training-free)
-    ├── 均匀/固定层缓存:DeepCache、FORA、Δ-DiT、PAB
-    ├── 输入感知自适应:**TeaCache**(本方向首篇)
-    └── 内容自适应 / CFG 复用:AdaCache、FasterCache
+├── 缓存复用(training-free)
+│   ├── 均匀/固定层缓存:DeepCache、FORA、Δ-DiT、PAB
+│   ├── 输入感知自适应:**TeaCache**(本方向首篇)
+│   └── 内容自适应 / CFG 复用:AdaCache、FasterCache
+│
+└── 多分辨率分阶段采样(training-free)
+    ├── Latent 空间 upsampling:RALU、SPEED、LSSGen
+    └── 像素空间 SR + 低强度 noising:**MrFlow**（本方向新篇）
 ```
 
 ## 核心问题
@@ -42,3 +46,4 @@
 | 简称 | 标题 | 任务 | 发表 | 链接 | 状态 |
 |------|------|------|------|------|------|
 | [teacache](./teacache/analysis.md) | Timestep Embedding Tells: It's Time to Cache for Video Diffusion Model | DiT 推理加速(免训练缓存) | CVPR 2025 (UCAS+Alibaba) | [github](https://github.com/ali-vilab/TeaCache) | ✅ |
+| [mrflow](./mrflow/analysis.md) | Multi-Resolution Flow Matching: Training-Free Diffusion Acceleration via Staged Sampling | 多分辨率分阶段采样(免训练) | arXiv 2026-07 (BUAA+NTU+ICT) | [github](https://github.com/xliu-deep/MrFlow) | ✅ |
