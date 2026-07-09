@@ -340,3 +340,24 @@ MoE 最优配置 (论文 Sec. 2.3):
 ## 8. 一句话总结
 
 LingBot-Video 证明 **MoE + 大规模具身数据 + 物理感知后训练** 三者协同可以让一个开源视频模型在 embodied AI benchmark 上超越全部竞品:MoE 解决推理效率,VLA 数据注入物理先验,RealNFT/GRPO 让物理合理性变成可以显式优化的目标。
+
+---
+
+## Q&A
+
+**Q: LingBot-Video 没有 cross-attention 了？**
+
+A: 对,完全没有 cross-attention。LingBot-Video 是纯 single-stream self-attention 设计。文本条件通过**拼接**注入,不是 cross-attend:
+
+```python
+# transformer_lingbot_video.py:1147-1148
+text = self.text_embedder(encoder_hidden_states)
+joint = torch.cat([x, text], dim=1)  # [video_tokens; text_tokens]
+
+for block in self.blocks:
+    joint = block(joint, temb6, rotary, ...)  # 全部 self-attention
+```
+
+`LingBotVideoAttention` 只有 `to_q / to_k / to_v`,无任何 `encoder_hidden_states` cross-attend 路径。文本信息的入路只有两条:(1) text token 拼进序列,通过 self-attention 与 video token 自然交互;(2) timestep embedding 经 AdaLN-Single 调制 scale/shift/gate,但这是 timestep 信息,不含文本语义。
+
+对比: MMDiT 系(SD3、JoyAI-Image)是双流 + cross-attention,text 和 image 各有独立 QKV 再做跨模态 attention;Wan2.x 和 LingBot-Video 同属单流拼接路线。单流的好处是省掉双流在每个 block 前后做 split-cat 的内存/带宽开销,分布式场景通信模式也更简单。
