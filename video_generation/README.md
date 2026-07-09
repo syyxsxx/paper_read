@@ -61,6 +61,7 @@
 | [helios](./helios/analysis.md) | Helios: Real Real-Time Long Video Generation Model | 实时长 T2V/I2V/V2V | ByteDance+PKU, 2026 | [project](https://pku-yuangroup.github.io/Helios-Page) | ✅ |
 | [seedance2](./seedance2/analysis.md) | Seedance 2.0: Advancing Video Generation for World Complexity | 多模态 T2V/I2V/R2V | ByteDance Seed, 2026 | [project](https://seed.bytedance.com/seedance2_0) | ✅ |
 | [bernini](./bernini/analysis.md) | Bernini: A Scalable Unified Framework for Video Generation and Editing | V2V/RV2V/S2V/T2V 统一 | ByteDance, 2026-05 | [project](https://bernini-ai.github.io) | ✅ |
+| [lingbot_video](./lingbot_video/analysis.md) | Scaling Mixture-of-Experts Video Pretraining for Embodied Intelligence | T2V/TI2V/T2I + 具身 | Ant Group, 2026 | [github](https://github.com/robbyant/lingbot-video) | ✅ |
 | self_forcing | Self Forcing: Bridging the Train-Test Gap in Autoregressive Video Diffusion | 长 T2V | NeurIPS 2025 (Adobe) | [github](https://github.com/guandeh17/Self-Forcing) | ⏳ |
 | causvid | From Slow Bidirectional to Fast Autoregressive Video Diffusion Models | 短 T2V | CVPR 2025 (MIT/Adobe) | [github](https://github.com/tianweiy/CausVid) | ⏳ |
 
