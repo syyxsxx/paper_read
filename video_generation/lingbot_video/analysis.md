@@ -347,6 +347,99 @@ LingBot-Video 证明 **MoE + 大规模具身数据 + 物理感知后训练** 三
 
 **Q: LingBot-Video 没有 cross-attention 了？**
 
+---
+
+**Q: Sparse MoE 是怎么推理和训练的？**
+
+A: 推理时走五步流水,训练时额外做 online bias correction + sequence-wise aux loss。
+
+**推理 Step 1 — Router 打分 & 选专家** (`transformer_lingbot_video.py:369-385`)
+
+```python
+logits = F.linear(tokens.float(), self.weight.float())  # router 强制 fp32
+scores = logits.sigmoid()                               # sigmoid,不是 softmax
+
+# 加 online correction bias 再选 topk;选完后去掉 bias 取真实 gate 权重
+scores_for_choice = scores + self.e_score_correction_bias
+top_indices = self._group_limited_topk(scores_for_choice)  # (T, top_k)
+top_scores  = scores.gather(1, top_indices)                # bias-FREE scores
+if self.norm_topk_prob:
+    top_scores = top_scores / (top_scores.sum(-1, keepdim=True) + 1e-20)
+top_scores = top_scores * self.route_scale
+```
+
+`_group_limited_topk`(line 353):把 `num_experts` 切成 `n_group` 组,每组取 top-2 分数之和选 `topk_group` 个组,再在选中组内全局 top-`K_r`。两层筛选限制通信范围。
+
+**推理 Step 2 — Token 重排**(按 expert 分组,`line 426-450`)
+
+```python
+# 展平成 (T*top_k,),按 expert_id 排序 → 同一专家的 token 在内存连续
+sort_order       = torch.argsort(active_experts, stable=True)
+permuted_tokens  = tokens[sorted_positions // top_k]  # (num_active, H)
+```
+
+**推理 Step 3 — Grouped Expert 计算**(`line 531-553`)
+
+```python
+# w1/w2/w3: (num_experts, intermediate_size, hidden_size)
+# torch._grouped_mm 把 N 个独立矩阵乘合成一次 kernel 调用
+h = F.silu(torch._grouped_mm(padded_tokens.bfloat16(),
+                              self.experts.w1.bfloat16().T, offs=offsets))
+h = h * torch._grouped_mm(padded_tokens.bfloat16(),
+                            self.experts.w3.bfloat16().T, offs=offsets)  # SwiGLU
+out = torch._grouped_mm(h, self.experts.w2.bfloat16().T, offs=offsets)
+```
+
+**推理 Step 4 — Token 还原 & 加权求和**(`line 750-766`)
+
+```python
+unsorted = torch.zeros((num_tokens * top_k, dim))
+unsorted[sorted_positions] = expert_output          # scatter 回原始顺序
+out = (unsorted.reshape(T, top_k, H).float()
+       * scores_unsorted).sum(dim=1)                # 加权合并 top_k 路
+```
+
+**推理 Step 5 — 加共享专家**(`line 868-872`)
+
+```python
+out = routed_out + self.shared_experts(hidden_states)  # 所有 token 必过
+```
+
+**训练额外项 1 — Online Bias Correction**(`e_score_correction_bias` buffer,不参与梯度):
+
+```
+每个 optimizer step 后:
+b_j ← b_j - η * sign(n_j - n̄)   # 超载专家降 bias,欠载专家升 bias
+```
+
+bias 只影响选择,不影响最终 gate 权重(那个用 bias-free scores),所以不扭曲梯度。
+
+**训练额外项 2 — Sequence-wise Auxiliary Loss**:
+
+$$
+\mathcal{L}_\text{seq} = \frac{1}{S}\sum_{s=1}^{S}\sum_{j=1}^{N_r} f_j^{(s)} P_j^{(s)}
+$$
+
+对 packed batch 里每条序列独立算均衡度,`f_j^(s)` detach(只做统计),`P_j^(s)` 有梯度。防止单条长视频内部 expert 分布塌缩。
+
+**精度策略**(`line 46-60`):router/norm/scale_shift_table 强制 fp32,专家 w1/w2/w3 用 bfloat16。router sigmoid 对精度敏感,低精度会让 load balance 崩。
+
+**整体数据流**:
+
+```
+hidden_states (B, S, H)
+ ├─ router → top_indices/top_scores
+ ├─ reorder → permuted_tokens (num_active, H)
+ ├─ grouped_mm × all experts → expert_output
+ ├─ restore + weighted sum → routed_out
+ └─ + shared_experts → out (B, S, H)
+训练: L = L_diff + λ_aux * L_seq
+```
+
+---
+
+**Q: LingBot-Video 没有 cross-attention 了？**
+
 A: 对,完全没有 cross-attention。LingBot-Video 是纯 single-stream self-attention 设计。文本条件通过**拼接**注入,不是 cross-attend:
 
 ```python
