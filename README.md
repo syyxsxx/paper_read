@@ -40,6 +40,7 @@ paper_read/
 | [image_generation](./image_generation/) | Qwen-Image-2.0-RL Technical Report | [qwen_image_rl](./image_generation/qwen_image_rl/analysis.md) | Qwen Team（阿里巴巴）, 2026-06 | — | 分任务 RLHF（T2I 三层奖励 + Edit 两维奖励）+ pointwise VLM 打分 + hybrid CFG（rollout 有 CFG，训练无 CFG）+ On-Policy Distillation（W₂ 速度场匹配合并 teacher）；Qwen-Image-Bench +2.61、T2I arena +78 Elo、Edit arena +93 Elo |
 | [image_generation](./image_generation/) | JoyAI-Image: Awakening Spatial Intelligence in Unified Multimodal Foundation Models | [joyai_image](./image_generation/joyai_image/analysis.md) | 京东 AI Research, 2026 | [github](https://github.com/jd-opensource/JoyAI-Image) | Qwen3-VL-8B-Instruct + Wan-2.1-VAE + 16B MMDiT 统一理解/T2I/编辑;OpenSpatial-3M(3M 条 3D box-centric QA)激活空间智能;Blender 驱动双路空间编辑数据引擎;DiffusionNFT 后训练;SpatialEdit-Bench Object Overall 0.649 超所有视频模型;LongText-Bench EN=ZH=0.963 SOTA |
 | [video_generation](./video_generation/) | Scaling Mixture-of-Experts Video Pretraining for Embodied Intelligence | [lingbot_video](./video_generation/lingbot_video/analysis.md) | Ant Group, 2026 | [github](https://github.com/robbyant/lingbot-video) | 首个大规模开源 MoE 视频 foundation model;Sparse MoE DiT(13B-A1.4B-E128)容量-算力解耦;70k+ 小时 VLA 具身数据;6 维解耦奖励 + Flash-GRPO + RealNFT 物理后训练;TI2V 开源第一,RBench 0.620 开源全榜第一,Physics-IQ 40.4 第一 |
+| [video_generation](./video_generation/) | Video Generation Models are General-Purpose Vision Learners | [genception](./video_generation/genception/analysis.md) | Google DeepMind, 2026-07 | [project](https://genception.github.io) | 预训练 WAN 2.1 T2V 扩散模型当作视觉感知 backbone;t=0 单步前向 + 统一 RGB 空间表示(深度/法线/分割/DensePose/raymap)+ 纯 L2 loss;7,500 条合成视频以 7×~500× 更少数据匹配专用 SOTA;emergent 泛化到多实例/OOD 类别 |
 | [multimodal](./multimodal/) | Representation Forcing for Bottleneck-Free Unified Multimodal Models | [rf](./multimodal/rf/analysis.md) | 港大+ByteDance Seed, 2026 | [project](https://yuqingwang1029.github.io/RepresentationForcing) | 将 UMM 理解编码器的表示离散化为 rep token，让解码器先 AR 预测再用 in-context 引导像素空间扩散，去掉外部 VAE 瓶颈；GenEval 从 0.25（naive pixel）→0.84，匹配 VAE-based SOTA，理解能力同时优于 VAE 版本 |
 
 ## 阅读体系
@@ -74,6 +75,7 @@ paper_read/
   - ✅ Seedance 2.0
   - ✅ Bernini（ByteDance, 2026-05）
   - ✅ LingBot-Video（Ant Group, 2026）
+  - ✅ GenCeption（Google DeepMind, 2026-07）
   - ⏳ Self-Forcing(已通过对话讨论,待整理成 markdown)
   - ⏳ CausVid(已通过对话讨论,待整理成 markdown)
 - ✅ multimodal
