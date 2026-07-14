@@ -63,6 +63,7 @@
 | [bernini](./bernini/analysis.md) | Bernini: A Scalable Unified Framework for Video Generation and Editing | V2V/RV2V/S2V/T2V 统一 | ByteDance, 2026-05 | [project](https://bernini-ai.github.io) | ✅ |
 | [lingbot_video](./lingbot_video/analysis.md) | Scaling Mixture-of-Experts Video Pretraining for Embodied Intelligence | T2V/TI2V/T2I + 具身 | Ant Group, 2026 | [github](https://github.com/robbyant/lingbot-video) | ✅ |
 | [genception](./genception/analysis.md) | Video Generation Models are General-Purpose Vision Learners | 通用视觉感知(深度/法线/分割/姿态/关键点) | Google DeepMind, 2026-07 | [project](https://genception.github.io) | ✅ |
+| [joyai_echo](./joyai_echo/analysis.md) | JoyAI-Echo: Pushing the Frontier of Long Audio-Visual Generation | 长音视频多镜头生成 | 京东 Joy Future Academy, 2026-06 | [github](https://github.com/jd-opensource/JoyAI-Echo) | ✅ |
 | self_forcing | Self Forcing: Bridging the Train-Test Gap in Autoregressive Video Diffusion | 长 T2V | NeurIPS 2025 (Adobe) | [github](https://github.com/guandeh17/Self-Forcing) | ⏳ |
 | causvid | From Slow Bidirectional to Fast Autoregressive Video Diffusion Models | 短 T2V | CVPR 2025 (MIT/Adobe) | [github](https://github.com/tianweiy/CausVid) | ⏳ |
 
