@@ -44,6 +44,7 @@ paper_read/
 | [video_generation](./video_generation/) | JoyAI-Echo: Pushing the Frontier of Long Audio-Visual Generation | [joyai_echo](./video_generation/joyai_echo/analysis.md) | 京东 Joy Future Academy, 2026-06 | [github](https://github.com/jd-opensource/JoyAI-Echo) | Slot-paired 跨模态音视频记忆库(3 anchor+4 recent,共 7 slots)+ 层级音频记忆 mask + slot-aware 跨模态 mask;SFT→OmniNFT RLHF→Bidirectional DMD 三阶段记忆感知后训练(7.5× 加速);Director Agent 闭环编辑 + 单步 SR 模块;全指标超越 Happy Oyster 和 LTX-2 系列 |
 | [video_generation](./video_generation/) | Wan-Dancer: A Hierarchical Framework for Minute-scale Coherent Music-to-Dance Generation | [wan_dancer](./video_generation/wan_dancer/analysis.md) | Tongyi Lab, Alibaba, 2026 | [github](https://github.com/alibaba/Wan-Dancer) | 层级 Global-to-Local 解耦:Global DiT 用 Dynamic FPS RoPE 把整首音乐压进 149 帧稀疏关键帧建立编舞骨架,Local DiT 并行精化每 5 秒片段;光流损失权重(SEA-RAFT)保全快速动作细节;720p/30fps 单次生成超 1 分钟,5 种舞蹈风格,全指标超越 X-Dancer 和 MusicInfuser |
 | [matting](./matting/) | SAM2Matting: Generalized Image and Video Matting | [sam2matting](./matting/sam2matting/analysis.md) | Fudan+SUFE, 2026 | [github](https://github.com/FudanCVL/SAM2Matting) | Tracker-to-Matting 范式:冻结 VOS(SAM2/SAM3)负责时序追踪,仅在图像抠图数据训练轻量 ROI Detector(学习型 ROI 替代形态学操作)+ Progressive Alpha Predictor(3 尺度级联);零样本视频 matting SOTA,SAM2.1-T 以 40 FPS @ 1080p + <4GB VRAM 实时运行 |
+| [flow_matching](./flow_matching/) | Self-Supervised Flow Matching for Scalable Multi-Modal Synthesis | [self_flow](./flow_matching/self_flow/analysis.md) | BFL+MIT, ICML 2026 | [arXiv](https://arxiv.org/abs/2603.06507) | Dual-Timestep Scheduling 对 token 施加异质噪声制造信息不对称,EMA teacher-student 自蒸馏替代外部编码器(REPA/DINOv2);首个纯自监督超越外部对齐的工作,图像/视频/音频多模态统一,收敛 2.8× 加速,T2I FID 3.61 全榜最优 |
 | [multimodal](./multimodal/) | Representation Forcing for Bottleneck-Free Unified Multimodal Models | [rf](./multimodal/rf/analysis.md) | 港大+ByteDance Seed, 2026 | [project](https://yuqingwang1029.github.io/RepresentationForcing) | 将 UMM 理解编码器的表示离散化为 rep token，让解码器先 AR 预测再用 in-context 引导像素空间扩散，去掉外部 VAE 瓶颈；GenEval 从 0.25（naive pixel）→0.84，匹配 VAE-based SOTA，理解能力同时优于 VAE 版本 |
 
 ## 阅读体系
@@ -85,6 +86,8 @@ paper_read/
   - ✅ SAM2Matting（Fudan+SUFE, 2026）
   - ⏳ Self-Forcing(已通过对话讨论,待整理成 markdown)
   - ⏳ CausVid(已通过对话讨论,待整理成 markdown)
+- ✅ flow_matching
+  - ✅ Self-Flow（BFL+MIT, ICML 2026）
 - ✅ multimodal
   - ✅ Cosmos 3
   - ✅ Representation Forcing（港大+ByteDance Seed, 2026）
