@@ -46,6 +46,7 @@ paper_read/
 | [matting](./matting/) | SAM2Matting: Generalized Image and Video Matting | [sam2matting](./matting/sam2matting/analysis.md) | Fudan+SUFE, 2026 | [github](https://github.com/FudanCVL/SAM2Matting) | Tracker-to-Matting 范式:冻结 VOS(SAM2/SAM3)负责时序追踪,仅在图像抠图数据训练轻量 ROI Detector(学习型 ROI 替代形态学操作)+ Progressive Alpha Predictor(3 尺度级联);零样本视频 matting SOTA,SAM2.1-T 以 40 FPS @ 1080p + <4GB VRAM 实时运行 |
 | [flow_matching](./flow_matching/) | Self-Supervised Flow Matching for Scalable Multi-Modal Synthesis | [self_flow](./flow_matching/self_flow/analysis.md) | BFL+MIT, ICML 2026 | [arXiv](https://arxiv.org/abs/2603.06507) | Dual-Timestep Scheduling 对 token 施加异质噪声制造信息不对称,EMA teacher-student 自蒸馏替代外部编码器(REPA/DINOv2);首个纯自监督超越外部对齐的工作,图像/视频/音频多模态统一,收敛 2.8× 加速,T2I FID 3.61 全榜最优 |
 | [multimodal](./multimodal/) | Representation Forcing for Bottleneck-Free Unified Multimodal Models | [rf](./multimodal/rf/analysis.md) | 港大+ByteDance Seed, 2026 | [project](https://yuqingwang1029.github.io/RepresentationForcing) | 将 UMM 理解编码器的表示离散化为 rep token，让解码器先 AR 预测再用 in-context 引导像素空间扩散，去掉外部 VAE 瓶颈；GenEval 从 0.25（naive pixel）→0.84，匹配 VAE-based SOTA，理解能力同时优于 VAE 版本 |
+| [world_model](./world_model/) | Alaya-EVOKE: From Linear-Scaling Supervision to Endless World | [evoke](./world_model/evoke/analysis.md) | USTC+Alaya Lab, 2026-08 | — | World State Bank（Pi3X 增量点云）+ Chunk-wise Sparse Teacher（5 路注意力，O(N) 总代价）+ Self-Forced DMD（20-chunk 31.4s 全窗口分布匹配蒸馏，chunk 间梯度截断），首个可稳定生成 90s 几何一致交互视频的系统 |
 
 ## 阅读体系
 
@@ -101,3 +102,5 @@ paper_read/
   - ✅ DAR（南京大学+阿里巴巴, 2026）
   - ✅ Qwen-Image-2.0-RL（Qwen Team, 2026-06）
   - ✅ JoyAI-Image（京东 AI Research, 2026）
+- ✅ world_model
+  - ✅ Alaya-EVOKE（USTC+Alaya Lab, 2026-08）
