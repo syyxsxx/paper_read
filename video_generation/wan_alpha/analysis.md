@@ -215,4 +215,72 @@ noise[0] = noise[0] + (1 - gauss_mask) * alpha_shift_mean
 
 ## Q&A
 
-*(对话中产生的追问将持续追加至此处)*
+**Q: 数据集怎么来的？**
+
+A: 分两套,均来自已有 matting 数据集,没有专门收集 RGB-A 视频。
+
+**VAE 训练数据(81,303 条视频)**:
+
+| 分类 | 数据集 | 规模参考 | 开源情况 |
+|------|--------|---------|---------|
+| 图像 matting | AIM-500 | 500 张 | ✅ 开源 |
+| 图像 matting | AM-2K | 2,000 张 | ✅ 开源 |
+| 图像 matting | Distinctions-646 | 646 张 | ✅ 开源 |
+| 图像 matting | HHM2K / HHM50K | ~52,000 张 | ✅ 开源 |
+| 图像 matting | Human2K | 2,000 张 | ✅ 开源 |
+| 图像 matting | P3M-10K | 10,000 张 | ⚠️ 需签协议(人脸隐私) |
+| 图像 matting | RealWorldPortrait-636 | 636 张 | ✅ 开源 |
+| 图像 matting | SIMD | ~390 张 | ✅ 开源 |
+| 图像 matting | Transparent-460 | 460 张 | ✅ 开源(Transmatting, ECCV 2022) |
+| 视频 matting | DVM | ~200 个视频 | ✅ 开源 |
+| 视频 matting | VideoMatting108 | 108 个视频 | ✅ 开源 |
+| 视频 matting | VideoMatte240K | 240K 帧 | ✅ 开源(BackgroundMattingV2) |
+| 网络爬取 | 烟/玻璃/水/光晕特效 | 不详 | ❌ 未公开 |
+
+图像数据靠滑窗转成静态视频凑数量——图像 resize 后把 crop 窗口沿随机方向(横/纵/斜)逐帧滑动,生成 17 帧伪动态视频,RGB 和 alpha 用完全相同的 crop 参数(`transparent_video_dataset_image.py:crop_and_resize_static_video()`)。
+
+**DiT 训练数据(429 条)**:VAE 数据的高质量人工子集,Qwen2.5-VL-72B 打短/长 caption + 属性标签(运动速度/画风/镜头/质量问题)。301 视频 matting + 43 图像静帧 + 85 网络特效。
+
+---
+
+**Q: 训练需要多少算力？**
+
+A: 两阶段成本差异很大。
+
+**VAE 训练**(`Wan-Alpha-VAE-train/train.sh`):
+- **8 张 GPU**,DeepSpeed Stage 2
+- 冻结信号源是 **Wan 1.3B**(非 14B),省显存
+- 训练分辨率仅 **272×272 × 17帧**(远小于推理的 480×832 × 81帧)
+- gradient checkpointing offload,75k iter,batch=2/GPU,lora_rank=128
+
+**DiT 训练**(`Wan-Alpha-train/train.sh`):
+- **8 节点 × 8 GPU = 64 张 GPU**
+- 基础模型 Wan2.1-T2V-14B,是显存大头
+- 分辨率 640×624,DoRA rank=32,20 epochs(≈ 1,750 iter),batch=8
+- gradient checkpointing offload
+
+| 阶段 | GPU 数 | 关键省钱设计 |
+|------|--------|------------|
+| VAE 训练 | 8 张 | 1.3B 信号源 + 272p 小分辨率 |
+| DiT 训练 | **64 张** | 429 条数据,仅 1750 步 |
+| 推理 | 1 张 | LoRA/DoRA merge 后零额外开销 |
+
+推理开销与 Wan-14B 相同。
+
+---
+
+**Q: 可以不训练 VAE、只微调 DiT 吗？**
+
+A: 从零开始不行,但如果有预训练 VAE 权重则可以。
+
+**不能完全跳过的原因**:标准 Wan VAE 只处理 3 通道 RGB,没有 Merge Block M 就无法把 (RGB, alpha) 对编码成统一 latent,DiT 拿不到训练信号。
+
+**两阶段完全解耦**:DiT 训练脚本通过 `--new_vae_path "VAE/pytorch_model.bin"` 直接加载预训练 VAE,两个阶段互相独立。所以:
+
+| 情况 | 是否可跳过 VAE 训练 |
+|------|-------------------|
+| 作者未开源 VAE 权重 | ❌ 必须自训 |
+| 作者开源了 `VAE/pytorch_model.bin` | ✅ 直接做 DiT 微调 |
+| 想换自己领域数据(如卡通角色) | ⚠️ 建议重训 VAE,否则 latent 分布不匹配 |
+
+**实际上 VAE 训练才是便宜的部分**:8 卡 + 1.3B 信号 + 272p 分辨率,成本远低于 64 卡的 DiT 训练。最合理的复现路径是等作者开源 VAE 权重,然后只跑 DiT 微调(1750 步,429 条数据)。
