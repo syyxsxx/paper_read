@@ -65,6 +65,7 @@
 | [genception](./genception/analysis.md) | Video Generation Models are General-Purpose Vision Learners | 通用视觉感知(深度/法线/分割/姿态/关键点) | Google DeepMind, 2026-07 | [project](https://genception.github.io) | ✅ |
 | [joyai_echo](./joyai_echo/analysis.md) | JoyAI-Echo: Pushing the Frontier of Long Audio-Visual Generation | 长音视频多镜头生成 | 京东 Joy Future Academy, 2026-06 | [github](https://github.com/jd-opensource/JoyAI-Echo) | ✅ |
 | [wan_dancer](./wan_dancer/analysis.md) | Wan-Dancer: A Hierarchical Framework for Minute-scale Coherent Music-to-Dance Generation | 分钟级音乐驱动舞蹈 T2V | Tongyi Lab, Alibaba, 2026 | [github](https://github.com/alibaba/Wan-Dancer) | ✅ |
+| [wan_alpha](./wan_alpha/analysis.md) | Video Generation with Stable Transparency via Shiftable RGB-A Distribution Learner | RGB-A 透明视频生成 | 天津大学 + 腾讯, 2026 | — | ✅ |
 | [raven](./raven/analysis.md) | RAVEN: Real-time Autoregressive Video Extrapolation with Consistency-model GRPO | 短 T2V AR 蒸馏 + RL | Imperial College London, 2026 | [project](https://yanzuo.lu/raven) | ✅ |
 | self_forcing | Self Forcing: Bridging the Train-Test Gap in Autoregressive Video Diffusion | 长 T2V | NeurIPS 2025 (Adobe) | [github](https://github.com/guandeh17/Self-Forcing) | ⏳ |
 | causvid | From Slow Bidirectional to Fast Autoregressive Video Diffusion Models | 短 T2V | CVPR 2025 (MIT/Adobe) | [github](https://github.com/tianweiy/CausVid) | ⏳ |

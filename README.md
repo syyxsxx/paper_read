@@ -47,6 +47,7 @@ paper_read/
 | [flow_matching](./flow_matching/) | Self-Supervised Flow Matching for Scalable Multi-Modal Synthesis | [self_flow](./flow_matching/self_flow/analysis.md) | BFL+MIT, ICML 2026 | [arXiv](https://arxiv.org/abs/2603.06507) | Dual-Timestep Scheduling 对 token 施加异质噪声制造信息不对称,EMA teacher-student 自蒸馏替代外部编码器(REPA/DINOv2);首个纯自监督超越外部对齐的工作,图像/视频/音频多模态统一,收敛 2.8× 加速,T2I FID 3.61 全榜最优 |
 | [multimodal](./multimodal/) | Representation Forcing for Bottleneck-Free Unified Multimodal Models | [rf](./multimodal/rf/analysis.md) | 港大+ByteDance Seed, 2026 | [project](https://yuqingwang1029.github.io/RepresentationForcing) | 将 UMM 理解编码器的表示离散化为 rep token，让解码器先 AR 预测再用 in-context 引导像素空间扩散，去掉外部 VAE 瓶颈；GenEval 从 0.25（naive pixel）→0.84，匹配 VAE-based SOTA，理解能力同时优于 VAE 版本 |
 | [world_model](./world_model/) | Alaya-EVOKE: From Linear-Scaling Supervision to Endless World | [evoke](./world_model/evoke/analysis.md) | USTC+Alaya Lab, 2026-08 | — | World State Bank（Pi3X 增量点云）+ Chunk-wise Sparse Teacher（5 路注意力，O(N) 总代价）+ Self-Forced DMD（20-chunk 31.4s 全窗口分布匹配蒸馏，chunk 间梯度截断），首个可稳定生成 90s 几何一致交互视频的系统 |
+| [video_generation](./video_generation/) | Video Generation with Stable Transparency via Shiftable RGB-A Distribution Learner | [wan_alpha](./video_generation/wan_alpha/analysis.md) | 天津大学+腾讯, 2026 | — | latent 空间双向扩散 loss 把 alpha 分布推离 RGB（bidiff）+ noise 空间 Gaussian 椭圆均值偏移，Wan-14B 以 DoRA+LoRA 实现 RGB-A 透明视频生成，TransPixeler 快 15×，全指标 SOTA |
 | [video_generation](./video_generation/) | RAVEN: Real-time Autoregressive Video Extrapolation with Consistency-model GRPO | [raven](./video_generation/raven/analysis.md) | Imperial College London, 2026 | [project](https://yanzuo.lu/raven) | 把 fake-score step 的 self-rollout 重打包为「clean 历史端点+noisy 去噪状态」交错序列（RAVEN），让 DMD 梯度流回历史缓存；CM-GRPO 直接在 consistency 转移核上做 GRPO，消除 Flow-GRPO 的 Euler-Maruyama 训练-推理 gap，RAVEN+CM-GRPO VBench 全维度第一 |
 
 ## 阅读体系
@@ -107,3 +108,4 @@ paper_read/
   - ✅ Alaya-EVOKE（USTC+Alaya Lab, 2026-08）
 - ✅ video_generation (新增)
   - ✅ RAVEN（Imperial College London, 2026）
+  - ✅ Wan-Alpha（天津大学+腾讯, 2026）
