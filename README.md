@@ -49,6 +49,11 @@ paper_read/
 | [world_model](./world_model/) | Alaya-EVOKE: From Linear-Scaling Supervision to Endless World | [evoke](./world_model/evoke/analysis.md) | USTC+Alaya Lab, 2026-08 | — | World State Bank（Pi3X 增量点云）+ Chunk-wise Sparse Teacher（5 路注意力，O(N) 总代价）+ Self-Forced DMD（20-chunk 31.4s 全窗口分布匹配蒸馏，chunk 间梯度截断），首个可稳定生成 90s 几何一致交互视频的系统 |
 | [video_generation](./video_generation/) | Video Generation with Stable Transparency via Shiftable RGB-A Distribution Learner | [wan_alpha](./video_generation/wan_alpha/analysis.md) | 天津大学+腾讯, 2026 | — | latent 空间双向扩散 loss 把 alpha 分布推离 RGB（bidiff）+ noise 空间 Gaussian 椭圆均值偏移，Wan-14B 以 DoRA+LoRA 实现 RGB-A 透明视频生成，TransPixeler 快 15×，全指标 SOTA |
 | [video_generation](./video_generation/) | RAVEN: Real-time Autoregressive Video Extrapolation with Consistency-model GRPO | [raven](./video_generation/raven/analysis.md) | Imperial College London, 2026 | [project](https://yanzuo.lu/raven) | 把 fake-score step 的 self-rollout 重打包为「clean 历史端点+noisy 去噪状态」交错序列（RAVEN），让 DMD 梯度流回历史缓存；CM-GRPO 直接在 consistency 转移核上做 GRPO，消除 Flow-GRPO 的 Euler-Maruyama 训练-推理 gap，RAVEN+CM-GRPO VBench 全维度第一 |
+| [video_generation](./video_generation/) | Beyond Text Conditioning: A Systematic Study of MLLM-DiT Fusion for Video Generation | [mllm_dit_fusion](./video_generation/mllm_dit_fusion/analysis.md) | 中科院+Microsoft Research 等, 2026-08 | [arXiv](https://arxiv.org/abs/2608.14043) | MLLM-DiT 耦合方式的三维设计空间扫描（表示形式 × 生成机制 × 注入方式）：EMA 码本离散语义 token + causal AR + 多层 cross-attention 胜出，VBench-Long 74.88→80.77；关键负面结论是主流的 frozen-MLLM + learnable query + connector 比不加 MLLM 还低 7 分 |
+| [image_generation](./image_generation/) | MMOE: Modernizing Diffusion Transformers with Efficient Expert Design | [mmoe](./image_generation/mmoe/analysis.md) | NTU+中国电信 TeleAI, 2026-07 | [arXiv](https://arxiv.org/abs/2607.24665) | ConvNeXt 式现代化：把 routed/shared/MoE++ 轻量零计算专家 + gate-residual + attention-residual 四件 LLM MoE 武器逐个搬进 SiT。单节点 8×H100/batch 256/400k step 下 FID 5.20→3.75；拆开看涨点几乎全来自 attention-residual（−0.79），轻量专家负责把训练时长从 120h 压到 67h、激活显存降 20–32% |
+| [training_infra](./training_infra/) | Zellige: Moldable Sequence Placement for Mixed Image-Video DiT Training | [zellige](./training_infra/zellige/analysis.md) | HKUST(GZ)+HIT(SZ)+HKUST, 2026-08 | [arXiv](https://arxiv.org/abs/2608.01150) | 两条定理证明预设不相交 rank 组必然在「组间负载不均」与「组内通信冗余」之间二选一；Zellige 允许 rank 集合重叠，用 profiler + Anchor/Filler 两阶段 CP-SAT（ECF 消对称，33–119 ms/batch）+ Coalesced Attention Engine，拿到 USP 的 1.00× 完美平衡却只用其 25% 通信量，比 KnapFormer 快 1.12–1.54× |
+| [world_model](./world_model/) | WorldDiT: A Unified Diffusion Architecture for World and Action Modeling | [worlddit](./world_model/worlddit/analysis.md) | Bagel Labs, 2026-07 | [HF](https://huggingface.co/bageldotcom/worlddit) | 4 层 d=1024 共享 DiT 用 flow matching 同时回归 7 步动作与未来单帧 1/3 白化 RGB patch；action-safe attention 保证推理时整条视觉路径可无损摘除。399M 参数 LIBERO 均值 94.9%，落在 sub-billion Pareto 前沿 —— 但 500 episode 里 300 个参与过 checkpoint 选择，且全文无消融 |
+| [video_generation](./video_generation/) | ReWorld: An Interactive World Model with Long-Horizon Memory | [reworld](./video_generation/reworld/analysis.md) | HKUST(GZ)+Alibaba ATH, 2026-08 | [project](https://zhifeichen097.github.io/ReWorld/) | 把「跟手」和「记得住」拆成两种 attention 窗口分别训练(18 局部 head 短窗 + 6 全局 head 全历史),random head routing 让能力不绑死在特定 head 上以适配部署时的共享有界 cache;推理端 B=12 固定预算 = sink + 5 recent + 6 个按位姿检索的 landmark(定容 30,里程计准入 + 位姿冗余淘汰),chunk-drop 训练把稀疏拼接 cache 变成分布内输入;八来源 22 万 clip 统一到同一物理动作尺度;Wan2.2-TI2V-5B + 4 步 DMD LoRA,RotErr 11.95° 与 VBench 均值 0.850 均居首 |
 
 ## 阅读体系
 
@@ -108,4 +113,15 @@ paper_read/
   - ✅ Alaya-EVOKE（USTC+Alaya Lab, 2026-08）
 - ✅ video_generation (新增)
   - ✅ RAVEN（Imperial College London, 2026）
+<<<<<<< Updated upstream
   - ✅ Wan-Alpha（天津大学+腾讯, 2026）
+=======
+  - ✅ ReWorld（HKUST(GZ)+Alibaba ATH, 2026-08）
+  - ✅ Beyond Text Conditioning / BiVidGen（中科院+MSRA, 2026-08）
+- ✅ image_generation (新增)
+  - ✅ MMOE（NTU+TeleAI, 2026-07）
+- ✅ world_model (新增)
+  - ✅ WorldDiT（Bagel Labs, 2026-07）
+- ✅ training_infra (新方向)
+  - ✅ Zellige（HKUST(GZ)+HIT(SZ), 2026-08）
+>>>>>>> Stashed changes

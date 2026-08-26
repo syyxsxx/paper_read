@@ -67,6 +67,8 @@
 | [wan_dancer](./wan_dancer/analysis.md) | Wan-Dancer: A Hierarchical Framework for Minute-scale Coherent Music-to-Dance Generation | 分钟级音乐驱动舞蹈 T2V | Tongyi Lab, Alibaba, 2026 | [github](https://github.com/alibaba/Wan-Dancer) | ✅ |
 | [wan_alpha](./wan_alpha/analysis.md) | Video Generation with Stable Transparency via Shiftable RGB-A Distribution Learner | RGB-A 透明视频生成 | 天津大学 + 腾讯, 2026 | — | ✅ |
 | [raven](./raven/analysis.md) | RAVEN: Real-time Autoregressive Video Extrapolation with Consistency-model GRPO | 短 T2V AR 蒸馏 + RL | Imperial College London, 2026 | [project](https://yanzuo.lu/raven) | ✅ |
+| [mllm_dit_fusion](./mllm_dit_fusion/analysis.md) | Beyond Text Conditioning: A Systematic Study of MLLM-DiT Fusion for Video Generation | MLLM-DiT 混合架构设计空间扫描(T2V) | 中科院+Microsoft Research 等, 2026-08 | [arXiv](https://arxiv.org/abs/2608.14043) | ✅ |
+| [reworld](./reworld/analysis.md) | ReWorld: An Interactive World Model with Long-Horizon Memory | 交互式世界模型(相机可控流式 T2V + 长程空间记忆) | HKUST(GZ)+Alibaba ATH, 2026-08 | [project](https://zhifeichen097.github.io/ReWorld/) | ✅ |
 | self_forcing | Self Forcing: Bridging the Train-Test Gap in Autoregressive Video Diffusion | 长 T2V | NeurIPS 2025 (Adobe) | [github](https://github.com/guandeh17/Self-Forcing) | ⏳ |
 | causvid | From Slow Bidirectional to Fast Autoregressive Video Diffusion Models | 短 T2V | CVPR 2025 (MIT/Adobe) | [github](https://github.com/tianweiy/CausVid) | ⏳ |
 
