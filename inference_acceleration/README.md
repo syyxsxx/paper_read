@@ -45,5 +45,6 @@
 
 | 简称 | 标题 | 任务 | 发表 | 链接 | 状态 |
 |------|------|------|------|------|------|
+| [tdm](./tdm/analysis.md) | Learning Few-Step Diffusion Models by Trajectory Distribution Matching | 扩散蒸馏(T2I/T2V 4步) | ICCV 2025 (HKUST+Huawei) | [github](https://github.com/Luo-Yihong/TDM) | ✅ |
 | [teacache](./teacache/analysis.md) | Timestep Embedding Tells: It's Time to Cache for Video Diffusion Model | DiT 推理加速(免训练缓存) | CVPR 2025 (UCAS+Alibaba) | [github](https://github.com/ali-vilab/TeaCache) | ✅ |
 | [mrflow](./mrflow/analysis.md) | Multi-Resolution Flow Matching: Training-Free Diffusion Acceleration via Staged Sampling | 多分辨率分阶段采样(免训练) | arXiv 2026-07 (BUAA+NTU+ICT) | [github](https://github.com/xliu-deep/MrFlow) | ✅ |
