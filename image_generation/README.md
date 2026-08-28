@@ -10,3 +10,4 @@
 | [qwen_image_rl](./qwen_image_rl/analysis.md) | Qwen-Image-2.0-RL Technical Report | 技术报告 | Qwen Team（阿里巴巴）, 2026-06 | — | ✅ |
 | [joyai_image](./joyai_image/analysis.md) | JoyAI-Image: Awakening Spatial Intelligence in Unified Multimodal Foundation Models | 技术报告 | 京东 AI Research, 2026 | [github](https://github.com/jd-opensource/JoyAI-Image) | ✅ |
 | [mmoe](./mmoe/analysis.md) | MMOE: Modernizing Diffusion Transformers with Efficient Expert Design | 论文 | NTU+中国电信 TeleAI, 2026-07 | [arXiv](https://arxiv.org/abs/2607.24665) | ✅ |
+| [diffusion_opsd](./diffusion_opsd/analysis.md) | On-Policy Self-Distillation in Diffusion Models | RL 奖励对齐(T2I) | ByteDance Seed+NUS+UCSD, 2026-08 | [github](https://github.com/worldbench/DiffusionOPSD) | ✅ |
