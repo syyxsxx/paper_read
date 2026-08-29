@@ -57,6 +57,8 @@ paper_read/
 | [training_infra](./training_infra/) | Zellige: Moldable Sequence Placement for Mixed Image-Video DiT Training | [zellige](./training_infra/zellige/analysis.md) | HKUST(GZ)+HIT(SZ)+HKUST, 2026-08 | [arXiv](https://arxiv.org/abs/2608.01150) | 两条定理证明预设不相交 rank 组必然在「组间负载不均」与「组内通信冗余」之间二选一；Zellige 允许 rank 集合重叠，用 profiler + Anchor/Filler 两阶段 CP-SAT（ECF 消对称，33–119 ms/batch）+ Coalesced Attention Engine，拿到 USP 的 1.00× 完美平衡却只用其 25% 通信量，比 KnapFormer 快 1.12–1.54× |
 | [world_model](./world_model/) | WorldDiT: A Unified Diffusion Architecture for World and Action Modeling | [worlddit](./world_model/worlddit/analysis.md) | Bagel Labs, 2026-07 | [HF](https://huggingface.co/bageldotcom/worlddit) | 4 层 d=1024 共享 DiT 用 flow matching 同时回归 7 步动作与未来单帧 1/3 白化 RGB patch；action-safe attention 保证推理时整条视觉路径可无损摘除。399M 参数 LIBERO 均值 94.9%，落在 sub-billion Pareto 前沿 —— 但 500 episode 里 300 个参与过 checkpoint 选择，且全文无消融 |
 | [video_generation](./video_generation/) | ReWorld: An Interactive World Model with Long-Horizon Memory | [reworld](./video_generation/reworld/analysis.md) | HKUST(GZ)+Alibaba ATH, 2026-08 | [project](https://zhifeichen097.github.io/ReWorld/) | 把「跟手」和「记得住」拆成两种 attention 窗口分别训练(18 局部 head 短窗 + 6 全局 head 全历史),random head routing 让能力不绑死在特定 head 上以适配部署时的共享有界 cache;推理端 B=12 固定预算 = sink + 5 recent + 6 个按位姿检索的 landmark(定容 30,里程计准入 + 位姿冗余淘汰),chunk-drop 训练把稀疏拼接 cache 变成分布内输入;八来源 22 万 clip 统一到同一物理动作尺度;Wan2.2-TI2V-5B + 4 步 DMD LoRA,RotErr 11.95° 与 VBench 均值 0.850 均居首 |
+| [video_generation](./video_generation/) | Scaling Reinforcement Learning for Diffusion Models via Velocity Matching | [rvm](./video_generation/rvm/analysis.md) | Georgia Tech+NVIDIA, 2026-08 | [project](https://jaemoo-choi.github.io/RVM/) | 主张扩散 RL 不需要 likelihood:把生成样本只加一次噪,用 reward 当带符号方向偏好做速度回归(正拉负推),无 policy ratio、无轨迹存储、无 CFG、无 clipping;证明 RAM 与 DiffusionNFT 是其在 (anchor, scale, reach) 上的特例;发现纯偏好 reward 会把视频训成静止画(Dyn. Degree 仅 2.78),提出 RAFT top-5% 光流的 DT reward 拉回 75.00;Wan2.1-1.3B 上 525 GPU-h(DanceGRPO 的 1/11.8)拿到 VBench Overall 84.13 |
+| [video_generation](./video_generation/) | Parallel Decoding Distillation for Fast Image and Video Generation | [pdd](./video_generation/pdd/analysis.md) | NVIDIA+Weizmann, 2026-07 | [project](https://research.nvidia.com/labs/genair/pdd) | 不把多步合并成一大步,而是一次前向并行预测块内全部 L 个区间的平均速度(N 个线性头共享 teacher backbone),训练只是回归到 teacher 的 Runge-Kutta 近似——无 VSD/GAN/JVP/有限差分/多阶段;推理时按步长把 L 个头融合成一个线性层,开销与 teacher 完全相同,且同一套权重支持可变 NFE;首个在视频上追平 distribution-based 的纯轨迹蒸馏,Qwen-Image 4 NFE 超 teacher 且多样性 0.192 vs DMD2 的 0.095 |
 
 ## 阅读体系
 
@@ -119,6 +121,8 @@ paper_read/
   - ✅ RAVEN（Imperial College London, 2026）
   - ✅ Wan-Alpha（天津大学+腾讯, 2026）
   - ✅ ReWorld（HKUST(GZ)+Alibaba ATH, 2026-08）
+  - ✅ RVM（Georgia Tech+NVIDIA, 2026-08）
+  - ✅ PDD（NVIDIA+Weizmann, 2026-07）
   - ✅ Beyond Text Conditioning / BiVidGen（中科院+MSRA, 2026-08）
 - ✅ image_generation (新增)
   - ✅ MMOE（NTU+TeleAI, 2026-07）
