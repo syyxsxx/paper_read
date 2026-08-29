@@ -178,7 +178,7 @@ $$
 
 ## 5. 关键代码位置
 
-代码仓库:<https://github.com/mvp-ai-lab/RAVEN>(Apache-2.0)。
+代码仓库:<https://github.com/mvp-ai-lab/RAVEN>(**CC BY-NC 4.0**,NonCommercial —— 见 LICENSE 第 1 行)。代码解读见 [code_read/video_generation/raven](../../../Code/video_generation/raven/analysis.md)。
 
 ⚠️ **读代码前先知道一件事**:开源版本是内部代码库的**转写**,不是原始训练代码。几乎每个函数上面都挂着 `# RAVEN: <内部文件>:<行号>` 的注释,标注它对应内部哪一段(例如 `# RAVEN: dmd.py:378-416`)。这些行号指向的文件**不在这个仓库里**,别去找。转写的好处是每处都写清了"为什么这样对齐 RNG 流""哪个分支是死代码",可读性反而比原版高。
 
