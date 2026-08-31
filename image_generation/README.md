@@ -11,3 +11,4 @@
 | [joyai_image](./joyai_image/analysis.md) | JoyAI-Image: Awakening Spatial Intelligence in Unified Multimodal Foundation Models | 技术报告 | 京东 AI Research, 2026 | [github](https://github.com/jd-opensource/JoyAI-Image) | ✅ |
 | [mmoe](./mmoe/analysis.md) | MMOE: Modernizing Diffusion Transformers with Efficient Expert Design | 论文 | NTU+中国电信 TeleAI, 2026-07 | [arXiv](https://arxiv.org/abs/2607.24665) | ✅ |
 | [diffusion_opsd](./diffusion_opsd/analysis.md) | On-Policy Self-Distillation in Diffusion Models | RL 奖励对齐(T2I) | ByteDance Seed+NUS+UCSD, 2026-08 | [github](https://github.com/worldbench/DiffusionOPSD) | ✅ |
+| [d_opsd](./d_opsd/analysis.md) | D-OPSD: On-Policy Self-Distillation for Continuously Tuning Step-Distilled Diffusion Models | Few-step 模型持续微调 | HKUST+Alibaba Z-Image+UCSD+CUHK, 2026-05 | [github](https://github.com/vvvvvjdy/D-OPSD) | ✅ |
