@@ -69,7 +69,7 @@ PDD 换了个角度:**不合并,而是并行**。一次前向出 `L` 个方向,�
 - **Consistency Models 家族**——从轨迹上任意中间态直接映射到干净态,自一致性条件。
 - **从零训练的 flow map 方法**(把 flow matching 目标和轨迹蒸馏目标合起来,用模型自身当 teacher)——PDD 说自己"原则上可以扩展成自蒸馏,但那需要完全不同的 pipeline、更大数据集和显著更多算力"。
 
-📌 **仓库内横向**:PDD 与 [TDM](../../image_generation/tdm/analysis.md) 同属 trajectory-based 且都是 data-free,但 TDM 做的是"轨迹上每个点的**分布匹配**",PDD 做的是"轨迹上每个区间的**速度回归**"——PDD 更纯粹(没有 fake score、没有对抗)。而 [RVM](../rvm/analysis.md) 出自同一批 NVIDIA 作者(Vahdat、Berner),但那篇是 **RL 对齐**不是蒸馏,两者正交。
+📌 **仓库内横向**:PDD 与 [TDM](../../inference_acceleration/tdm/analysis.md) 同属 trajectory-based 且都是 data-free,但 TDM 做的是"轨迹上每个点的**分布匹配**",PDD 做的是"轨迹上每个区间的**速度回归**"——PDD 更纯粹(没有 fake score、没有对抗)。而 [RVM](../rvm/analysis.md) 出自同一批 NVIDIA 作者(Vahdat、Berner),但那篇是 **RL 对齐**不是蒸馏,两者正交。
 
 ---
 
@@ -448,7 +448,7 @@ Algorithm 3 的做法是**跟着自己的采样算法走**:
 
 A: **两者都是 trajectory-based + data-free,但监督信号的层次不同。**
 
-| | [TDM](../../image_generation/tdm/analysis.md) | PDD |
+| | [TDM](../../inference_acceleration/tdm/analysis.md) | PDD |
 |---|---|---|
 | 匹配对象 | 轨迹点的**分布**(反向 KL) | 区间的**平均速度**(MSE) |
 | 需要 fake score | ✅ 需要在线训一个 critic | ❌ 不需要 |
