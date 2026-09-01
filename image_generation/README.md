@@ -13,3 +13,4 @@
 | [diffusion_opsd](./diffusion_opsd/analysis.md) | On-Policy Self-Distillation in Diffusion Models | RL 奖励对齐(T2I) | ByteDance Seed+NUS+UCSD, 2026-08 | [github](https://github.com/worldbench/DiffusionOPSD) | ✅ |
 | [d_opsd](./d_opsd/analysis.md) | D-OPSD: On-Policy Self-Distillation for Continuously Tuning Step-Distilled Diffusion Models | Few-step 模型持续微调 | HKUST+Alibaba Z-Image+UCSD+CUHK, 2026-05 | [github](https://github.com/vvvvvjdy/D-OPSD) | ✅ |
 | [self_opd](./self_opd/analysis.md) | Self-OPD: On-Policy Distillation for Flow Matching Models without Teacher | 无 teacher 的 OPD 多目标对齐(T2I) | 清华+浙大+阿里, 2026-08 | [github](https://github.com/Shiy-Zhang/Self-OPD) | ✅ |
+| [flow_opd](./flow_opd/analysis.md) | Flow-OPD: On-Policy Distillation for Flow Matching Models | 多 teacher OPD 多目标对齐(T2I) | USTC+UCLA+CUHK+小红书, 2026-05 | [github](https://github.com/CostaliyA/Flow-OPD) | ✅ |
