@@ -15,3 +15,4 @@
 | [self_opd](./self_opd/analysis.md) | Self-OPD: On-Policy Distillation for Flow Matching Models without Teacher | 无 teacher 的 OPD 多目标对齐(T2I) | 清华+浙大+阿里, 2026-08 | [github](https://github.com/Shiy-Zhang/Self-OPD) | ✅ |
 | [flow_grpo](./flow_grpo/analysis.md) | Flow-GRPO: Training Flow Matching Models via Online RL | 扩散 online RL 的源头(T2I) | NeurIPS 2025, 港中文+清华+快手等 | [github](https://github.com/yifan123/flow_grpo) | ✅ |
 | [flow_opd](./flow_opd/analysis.md) | Flow-OPD: On-Policy Distillation for Flow Matching Models | 多 teacher OPD 多目标对齐(T2I) | USTC+UCLA+CUHK+小红书, 2026-05 | [github](https://github.com/CostaliyA/Flow-OPD) | ✅ |
+| [diffusion_nft](./diffusion_nft/analysis.md) | DiffusionNFT: Online Diffusion Reinforcement with Forward Process | 扩散 online RL 范式(前向过程) | ICLR 2026, 清华+NVIDIA+Stanford | [arXiv](https://arxiv.org/abs/2509.16117) | ✅ |
