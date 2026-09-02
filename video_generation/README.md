@@ -71,6 +71,7 @@
 | [reworld](./reworld/analysis.md) | ReWorld: An Interactive World Model with Long-Horizon Memory | 交互式世界模型(相机可控流式 T2V + 长程空间记忆) | HKUST(GZ)+Alibaba ATH, 2026-08 | [project](https://zhifeichen097.github.io/ReWorld/) | ✅ |
 | [rvm](./rvm/analysis.md) | Scaling Reinforcement Learning for Diffusion Models via Velocity Matching | 扩散 RL 后训练(T2I/T2V/I2V 通用) | Georgia Tech+NVIDIA, 2026-08 | [project](https://jaemoo-choi.github.io/RVM/) | ✅ |
 | [pdd](./pdd/analysis.md) | Parallel Decoding Distillation for Fast Image and Video Generation | few-step 轨迹蒸馏(T2I/T2V/音视频) | NVIDIA+Weizmann, 2026-07 | [project](https://research.nvidia.com/labs/genair/pdd) | ✅ |
+| [minwm](./minwm/analysis.md) | minWM: A Full-Stack Open-Source Framework for Real-Time Interactive Video World Models | 相机可控实时世界模型(工程配方) | 生数科技+清华+人大等, 2026-05 | [github](https://github.com/shengshu-ai/minWM) | ✅ |
 | self_forcing | Self Forcing: Bridging the Train-Test Gap in Autoregressive Video Diffusion | 长 T2V | NeurIPS 2025 (Adobe) | [github](https://github.com/guandeh17/Self-Forcing) | ⏳ |
 | causvid | From Slow Bidirectional to Fast Autoregressive Video Diffusion Models | 短 T2V | CVPR 2025 (MIT/Adobe) | [github](https://github.com/tianweiy/CausVid) | ⏳ |
 
