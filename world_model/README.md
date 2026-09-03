@@ -37,6 +37,7 @@
 | [Alaya-EVOKE: From Linear-Scaling Supervision to Endless World](./evoke/analysis.md) | evoke | A 视频世界模型 | USTC+Alaya Lab, 2026-08 | WSB + Sparse Teacher + SFD，首个 90s 几何一致交互视频生成 |
 | [WorldDiT: A Unified Diffusion Architecture for World and Action Modeling](./worlddit/analysis.md) | worlddit | B 世界-动作模型 | Bagel Labs, 2026-07 | 399M 参数共享 DiT 同时回归 7 步动作与未来归一化 RGB patch，推理时摘掉视觉路径，LIBERO 均值 94.9% 落在 sub-billion Pareto 前沿；但报告值含 60% 非 held-out episode 且无消融 |
 | [Agentic Game Development as a Verifiable Trajectory Data Engine for Scaling World Models](./awomo/analysis.md) | awomo | C 可验证游戏数据引擎 | NUS+InfRec+Berkeley+HKUST, 2026-08 | 把游戏开发轨迹(intent+edit+engine check+repair+acceptance)包装成 RLHEV 递归数据飞轮，替代 CLIP 等模糊奖励；UnitySceneBench Full RLHEV Primary 0.681 vs Engine-only 0.55，Unity→held-out Unity 0.25→0.75，embodied +48.43% D4RL |
+| [H3-World: Turning Language Understanding into World Control](./h3_world/analysis.md) | h3_world | A 视频世界模型 | 腾讯+NUS+港理工, 2026-09 | 不造动作模块：把键鼠动作翻成「角色子句+相机子句」文本，逐 latent 绑定 τ(A_k)=τ(V_k)−Δ，单出口路由防泄漏，33B MiniMax-H3 上只训 0.199% LoRA；但全文仅一组光流数字、路由无消融、52 个未见组合只定性测了 1 个 |
 
 ## 核心问题
 
@@ -57,4 +58,5 @@
 ## 交叉引用
 
 - **[ReWorld](../video_generation/reworld/analysis.md)**（video_generation 方向）也是交互式世界模型，与支线 A 同源
+- **[DreamX-Creator 1.0](../video_generation/dreamx_creator/analysis.md)** 与 H3-World 同以 MiniMax-H3 为参照系：前者把它当最强开源对照（多数音频指标打不过），后者把它当改造底座
 - **[MMOE](../image_generation/mmoe/analysis.md)** 的 attention-residual 跨深度复用，与 WorldDiT 的 register token / block-causal 设计属于同一层面的 DiT 内部改造
