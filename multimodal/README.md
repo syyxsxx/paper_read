@@ -12,6 +12,7 @@
 |------|------|------|------|------|------|
 | [cosmos3](./cosmos3/analysis.md) | Cosmos 3: Omnimodal World Models for Physical AI | Omnimodal World Model(5 模态:语言/图/视/音/动作) | NVIDIA, 2026 | [github](https://github.com/nvidia/cosmos) | ✅ |
 | [rf](./rf/analysis.md) | Representation Forcing for Bottleneck-Free Unified Multimodal Models | 统一多模态（理解+像素空间生成，无 VAE） | 港大+ByteDance, 2026 | [project](https://yuqingwang1029.github.io/RepresentationForcing) | ✅ |
+| [videoflextok](./videoflextok/analysis.md) | VideoFlexTok: Flexible-Length Coarse-to-Fine Video Tokenization | 视频 tokenizer(可变长度/由粗到细) | Apple + EPFL, 2026-04 | [project](https://videoflextok.epfl.ch) | ✅ |
 
 ## 关键技术词汇
 
