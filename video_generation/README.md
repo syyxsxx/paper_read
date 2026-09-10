@@ -74,6 +74,7 @@
 | [minwm](./minwm/analysis.md) | minWM: A Full-Stack Open-Source Framework for Real-Time Interactive Video World Models | 相机可控实时世界模型(工程配方) | 生数科技+清华+人大等, 2026-05 | [github](https://github.com/shengshu-ai/minWM) | ✅ |
 | [dreamx_creator](./dreamx_creator/analysis.md) | DreamX-Creator 1.0: Democratizing Native Audio-Video Generation at 2K Resolution | 原生联合音视频生成(7B 开源技术报告) | DreamX Team, 阿里巴巴, 2026-08 | [arXiv](https://arxiv.org/abs/2608.31106) | ✅ |
 | [opsd_v](./opsd_v/analysis.md) | OPSD-V: On-Policy Self-Distillation for Post-Training Few-Step Autoregressive Video Generators | few-step 因果 AR 视频后训练(真实长视频作 teacher 上下文) | 美团+港科大+港城大, 2026-07 | [project](https://meigen-ai.github.io/OPSD-V) | ✅ |
+| [mask_forcing](./mask_forcing/analysis.md) | Mask Forcing: Improving Autoregressive Video Diffusion Distillation via Dual-Noise Masking Rollout | AR 视频蒸馏 rollout 扰动 | HKUST+LIGHTSPEED+UCSD, 2026-09 | [project](https://alicezrzhao.github.io/mask_forcing/) | ✅ |
 | self_forcing | Self Forcing: Bridging the Train-Test Gap in Autoregressive Video Diffusion | 长 T2V | NeurIPS 2025 (Adobe) | [github](https://github.com/guandeh17/Self-Forcing) | ⏳ |
 | causvid | From Slow Bidirectional to Fast Autoregressive Video Diffusion Models | 短 T2V | CVPR 2025 (MIT/Adobe) | [github](https://github.com/tianweiy/CausVid) | ⏳ |
 
