@@ -16,7 +16,7 @@
 
 ⚠️ **但评测部分问题不小**（§6 详述）：**WorldRoamBench 是同一批作者做的**；Table 3 里 ABot-World-0 **没有一项是第一**；全文**唯一的消融是 LongForcing**，占据篇幅最大的数据基建**零量化证据、连语料规模都没给**；头条的 16 FPS 来自最激进的 MXFP4 量化，而其画质从未被评测。
 
-📌 **与仓库的直接关联**：[H3-World](../h3_world/analysis.md) 的训练数据 **ABot-World-Explorer-500h 就出自这里的 WorldExplorer**——两篇是同一套数据的上下游。
+📌 **与仓库的直接关联**：[H3-World](../h3world/analysis.md) 的训练数据 **ABot-World-Explorer-500h 就出自这里的 WorldExplorer**——两篇是同一套数据的上下游。
 
 ---
 
@@ -321,7 +321,7 @@ $$
 - 三个数据源各自的边际贡献？**没有 source ablation。**
 - 软加权（Stage 3 元数据）vs 硬拒绝？**没测。**
 
-**⑤ 全文没有任何语料规模数字。** 多少小时？多少 clip？多少个 AAA 标题？**一个都没有。** 讽刺的是，**这个数字要从引用它的 [H3-World](../h3_world/analysis.md) 那里才能间接看到**——后者把数据集称作 **ABot-World-Explorer-500h**（500 小时）。一份以数据基建为头号卖点的报告不报数据量，很不寻常。
+**⑤ 全文没有任何语料规模数字。** 多少小时？多少 clip？多少个 AAA 标题？**一个都没有。** 讽刺的是，**这个数字要从引用它的 [H3-World](../h3world/analysis.md) 那里才能间接看到**——后者把数据集称作 **ABot-World-Explorer-500h**（500 小时）。一份以数据基建为头号卖点的报告不报数据量，很不寻常。
 
 **⑥ 头条的 16 FPS 与被评测的模型很可能不是同一个配置。** Table 2 里 **15.831 FPS 来自最激进的 MXFP4**，而论文明说 **FP8 才是"默认的质量导向工作点"**（12.405 FPS）。**MXFP4/MXFP6 的画质从未被评测**——没有任何"量化格式 vs WorldRoamBench 分数"的表。所以"720P 16 FPS"和"WorldRoamBench 上有竞争力"这两句话**大概率描述的是两个不同的模型配置**。论文用"operating envelope（工作包络）"这个词把两者含糊地并置了。
 
@@ -458,11 +458,11 @@ A: **系统栈和数据流水线可以直接抄，评测结论要大幅打折，
 
 **Q: 它和仓库里其它世界模型是什么关系？**
 
-A: **它是 [H3-World](../h3_world/analysis.md) 的数据上游，也是"全栈系统"路线上与 minWM 最像的一篇。**
+A: **它是 [H3-World](../h3world/analysis.md) 的数据上游，也是"全栈系统"路线上与 minWM 最像的一篇。**
 
 | | 关系 |
 |---|---|
-| **[H3-World](../h3_world/analysis.md)** | 📌 **直接上下游**：H3-World 的训练/评测集就来自 **ABot-World-Explorer-500h**。有意思的是**两篇的动作接口哲学相反**——ABot 用 **8 维原始键盘 multi-hot 直接注入**，H3-World 把**同一批键盘状态翻译成自然语言子句**走文本通路。**同一份数据、两种控制表示**，可惜没人做过直接对比 |
+| **[H3-World](../h3world/analysis.md)** | 📌 **直接上下游**：H3-World 的训练/评测集就来自 **ABot-World-Explorer-500h**。有意思的是**两篇的动作接口哲学相反**——ABot 用 **8 维原始键盘 multi-hot 直接注入**，H3-World 把**同一批键盘状态翻译成自然语言子句**走文本通路。**同一份数据、两种控制表示**，可惜没人做过直接对比 |
 | [minWM](../../video_generation/minwm/analysis.md) | **最接近的对照**——同样是"相机可控实时世界模型的全栈工程配方"。⚠️ 但 minWM 是零量化指标零 baseline，ABot 至少给了 Table 2 和 Table 3 |
 | [EVOKE](../evoke/analysis.md) | 同为长时交互视频世界模型。EVOKE 用 **Pi3X 点云 World State Bank** 做几何持久化，ABot 用**有界 KV cache + 参考身份记忆**——**前者存几何、后者存外观**，是两条不同的持久化路线 |
 | [ReWorld](../../video_generation/reworld/analysis.md) | 用 **landmark bank + 混合逐 head 注意力窗口**做长程空间记忆，控制走**相机位姿折进 attention logits**——正是 ABot §2.4 明确拒绝的那条路线 |

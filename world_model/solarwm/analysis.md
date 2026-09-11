@@ -423,7 +423,7 @@ $$
 
 **⑦ Fig 11 的采样密度是每 10 分钟一帧。** 60 分钟只看 6 帧，**中间过程完全不可见**。相比之下 [ABot-World-0](../abot_world_0/analysis.md) 至少给了 60 秒的逐帧量化曲线（HPSv3 / 高饱和比 / 模糊分 / patch 重复率）——**那条曲线显示 LongForcing 在 60 秒内 HPSv3 就从 8 掉到 5–6**。SolarWM 连这个尺度的量化都没有。
 
-**⑧ 只有相机轨迹一种控制，没有角色/动作控制。** §6 明确说 *"the prescribed camera trajectory provides the only time-varying external control"*。这使它与 [ABot-World-0](../abot_world_0/analysis.md)、[H3-World](../h3_world/analysis.md)（都做角色 + 相机双控）**不在同一个能力维度上**，跨篇比较时要注意。对游戏场景，"只能移动镜头、不能操控角色"是个实质限制。
+**⑧ 只有相机轨迹一种控制，没有角色/动作控制。** §6 明确说 *"the prescribed camera trajectory provides the only time-varying external control"*。这使它与 [ABot-World-0](../abot_world_0/analysis.md)、[H3-World](../h3world/analysis.md)（都做角色 + 相机双控）**不在同一个能力维度上**，跨篇比较时要注意。对游戏场景，"只能移动镜头、不能操控角色"是个实质限制。
 
 **⑨ LTX Clean Plate 引入的分布偏移未被评估。** 543k clean clip 占 kept 语料的相当比重。论文诚实地警告了"移除可能引入纹理伪影、时序不连续、改变运动统计"并对每个输出重算指标——**但没有任何实验回答"训在 clean 数据上的模型，在有人有车的真实场景里表现如何"**。而这恰恰是部署时的常态。
 
@@ -492,7 +492,7 @@ fused-PRoPE 的流程（沿用 MosaicMem）：
 |---|---|---|
 | **折进 attention** | 相机几何进 Q/K/V 或 attention logits | **SolarWM (fused-PRoPE)**、[ReWorld](../../video_generation/reworld/analysis.md) (PM-RoPE / E-PRoPE) |
 | **加性注入 patchify** | 动作 embedding 加到 patch embedding 上 | [ABot-World-0](../abot_world_0/analysis.md)（8 维键盘） |
-| **走原生文本通路** | 动作翻译成自然语言 | [H3-World](../h3_world/analysis.md) |
+| **走原生文本通路** | 动作翻译成自然语言 | [H3-World](../h3world/analysis.md) |
 | **外挂几何状态** | 点云 / landmark bank 做持久化 | [EVOKE](../evoke/analysis.md)、[ReWorld](../../video_generation/reworld/analysis.md) |
 
 ⚠️ **注意控制信号本身不同**：SolarWM 和 ReWorld 用的是**标定的 6-DoF 相机轨迹**；ABot-World-0 明确**拒绝**这条路（理由是长 rollout 累积位姿会漂出训练分布），改用局部增量的键盘动作。**这两种主张目前都没有直接的对照实验来裁决。**
@@ -526,7 +526,7 @@ A: **数据工程部分价值很高、可以直接照搬；模型结论一个都
 
 **能力边界要注意**：
 
-- ⚠️ **只有相机轨迹控制，没有角色/动作控制**。对游戏场景来说，"能移动镜头但不能操控角色"是实质限制。要角色控制得看 [ABot-World-0](../abot_world_0/analysis.md) 或 [H3-World](../h3_world/analysis.md)。
+- ⚠️ **只有相机轨迹控制，没有角色/动作控制**。对游戏场景来说，"能移动镜头但不能操控角色"是实质限制。要角色控制得看 [ABot-World-0](../abot_world_0/analysis.md) 或 [H3-World](../h3world/analysis.md)。
 - ⚠️ **训练数据大量经过 Clean Plate 洗掉了人和车**，而论文**没有评估这会不会让模型在有人有车的真实场景里退化**。
 
 📌 **最实际的建议**：**盯它的 release**。如果 1.43M clip + 完整标注 + rejected 分区 + 可执行 pipeline 真的按承诺放出来，**那这份数据本身的价值远超论文里的任何模型结论**——它会是目前最大的、带 metric 相机标注的开放世界模型语料。

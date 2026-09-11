@@ -1,8 +1,9 @@
 # H3-World: Turning Language Understanding into World Control
 
-**论文**: [arXiv 2609.01560](https://arxiv.org/abs/2609.01560)
-**代码**: [Danzer1xxxxChan/H3-World](https://github.com/Danzer1xxxxChan/H3-World)
-**机构**: Tencent + NUS + HK PolyU
+**论文**: [arXiv 2609.01560](https://arxiv.org/abs/2609.01560)(2026-09-01)
+**代码**: [Danzer1xxxxChan/H3-World](https://github.com/Danzer1xxxxChan/H3-World) · [project](https://danzer1xxxxchan.github.io/H3-World) · [model](https://huggingface.co/DANNY621/H3-World)
+**作者**: Danze Chen¹²♣, Zeqing Wang¹²♣, Ziyue Lin³, Xingyi Yang³*, Yeying Jin¹²*♢
+**机构**: ¹腾讯 ²新加坡国立大学 ³香港理工大学（♣ 腾讯实习期间完成，Yeying Jin 指导；♢ project leader）
 **时间**: 2026-09
 
 ---
@@ -97,9 +98,64 @@ def null_script(latent_t):
 
 ---
 
+#### 动作空间的训练覆盖（Fig 4）
+
+![Fig 4: 动作空间的训练覆盖热力表](./figures/H3-World-Action-Space.png)
+
+> **Fig 4 逐区域解读**：这是一张 **9 行（角色子句）× 16 列（相机子句）的热力表**，格子里的数字是 prompt 计数。
+>
+> **列头分五组**：`TRACKING`（Follow subject）、`STATIC`（Holds steady）、`PAN`（Left slow / Left sharp / Right slow / Right sharp）、`TILT`（Down / Up）、`TILT+`（Left+down slow、Left+up slow、Left+down sharp、Left+up sharp）、`PAN+TILT`（Right+down slow、Right+up slow、Right+down sharp、Right+up sharp）。
+>
+> **行头九个**：Stand still / Forward(W) / Backward(S) / Strafe left(A) / Strafe right(D) / Forward+left(W+A) / Forward+right(W+D) / Backward+left(S+A) / Backward+right(S+D)。
+>
+> ⚠️ **数据分布极度不均**：`Stand still` 那一行几乎全是万级（21.9k、17.4k、15.4k、11.6k、11.0k…），而 `Backward` 行大量是三位数（418、485）甚至 `—`（valid unseen）。
+>
+> **底部三个汇总框**给出全文最关键的三组数字：
+> - **COMPACT SPACE**：`9 × 16 = 144`，其中 **135 个结构上有效**
+> - **EMPIRICAL SUPPORT**：**83 个在训练中出现**，**52 个有效组合从未见过**
+> - **USAGE CONCENTRATION**：**Top 20 = 71.4%**，**Top 40 = 95.4%**（共 **291,264** 条 prompt）
+>
+> 形式化写成 `A_train ⊊ A_valid ⊊ U × C`。
+>
+> 📌 **论文把这个不均衡当成优点**——它天然构成了组合泛化的测试场：一个联合命令可能没出现过，但它的角色子句和相机子句各自在别的组合里出现过。
+>
+> ⚠️ **但反过来说**：`Stand still + 各种镜头` 是压倒性的多数，真正的复杂角色移动样本稀疏（`Backward` 行大量三位数）。**这意味着模型在角色控制上的可靠性很可能远低于相机控制，而论文没有分开报告。**
+
+---
+
 ### 4.3 Latent-Aligned Temporal Binding（时序绑定）
 
-H3 的视频 latent 分组非均匀：`_FRAME_PER_TOKEN = (1, 4, 4, 4, 4)`，每 5 个 token 为一组，每组首 token 对应 1 帧，余下 4 个各对应 4 帧。
+**论文级的形式化**（§3.3）：每条 prompt `p_k` 各自过共享的 H3 encoder `E`，再过一个**共享的两层 token refiner** `R`：
+
+$$
+A_k = \mathcal{R}\big(\mathcal{E}(p_k)\big)
+$$
+
+📌 **token refiner 用的是 block-diagonal attention**：同一动作 span 内部双向互通，**不同 span 之间当作独立序列处理**——既共享表示空间，又在进入视频骨干前保住每条指令的时间身份。
+
+打包成一条序列：
+
+$$
+X = [\,S;\ A_1;\ \dots;\ A_K;\ C_0;\ V_1;\ \dots;\ V_K;\ P\,]
+$$
+
+**位置编码是这一节的精髓**——动作 span 被赋予**镜像的时间位置**：
+
+$$
+\tau(A_k) = \tau(V_k) - \Delta, \qquad \Delta > 0
+$$
+
+> 即：**每个动作 span 的时间坐标 = 它匹配的视频 latent 的坐标减去同一个常数偏移**。
+>
+> **这样做同时满足两件事**：① 动作 span 之间的**相对时序**与视频 latent 完全一致；② 减掉 `Δ` 使它们**仍落在文本侧的位置区间内**，从而**保住 H3 预训练的「文本在前、视频在后」顺序**。
+>
+> 📌 **这是个很省事的技巧**——不改位置编码方案、不加新参数，只靠一个平移就给每个 (动作, latent) 对提供了一致的时间对齐线索。
+
+另外，初始观测走**两条互补的编码路径**：H3 多模态编码器把静态语义条件 `s` 和 `I₀` 联合处理成静态语义 token `S`；**visual VAE** 把 `I₀` 映成首帧条件 `C₀`——后者保留细粒度外观。
+
+---
+
+**代码层面的实现细节**：H3 的视频 latent 分组非均匀：`_FRAME_PER_TOKEN = (1, 4, 4, 4, 4)`，每 5 个 token 为一组，每组首 token 对应 1 帧，余下 4 个各对应 4 帧。
 
 对于 124 帧视频：`latent_t = 37`（5 组 × 7 + 2）。
 
@@ -115,7 +171,22 @@ H3 的视频 latent 分组非均匀：`_FRAME_PER_TOKEN = (1, 4, 4, 4, 4)`，每
 
 ### 4.4 Directed Attention Routing（有向注意力路由）
 
-在 DiffSynth-Studio 的 `diffsynth_h3_action.patch` 中实现，核心修改：
+**论文级的规则**（§3.4）——⚠️ **光有时间对齐不够**：双向 self-attention 里，动作 span 仍然可以直接和**不匹配的**视频 latent 通信。所以需要一个确定性的掩码：
+
+| `A_k` 的角色 | 可访问 | 被屏蔽 |
+|---|---|---|
+| **作为 Key**（谁能读它） | 同一 span 内的 token、**它匹配的 `V_k`** | static token、首帧条件 token、原生音频 token、**其它动作 span**、**不匹配的视频 latent** |
+| **作为 Query**（它能读谁） | static 上下文、首帧条件、原生音频上下文、自身 token、**匹配的 `V_k`** | 其它动作 span、不匹配的视频 latent |
+
+**所有视频 latent span 保持 H3 原本的完整双向注意力。**
+
+📌 **「单出口」三个字的含义**：`A_k` 的视觉效果**只有一个直接入口——`V_k`**；进去以后再通过 video-to-video attention 自由传播。这样既保住全 horizon 的信息交换（运动连续性、场景一致性），又让**每个排定动作有唯一的直接入口**。
+
+📌 **路由掩码和 span 划分不引入任何可学习参数**，训练目标仍是 H3 原生的去噪目标。
+
+---
+
+**代码层面的实现**：在 DiffSynth-Studio 的 `diffsynth_h3_action.patch` 中实现，核心修改：
 
 ```python
 # diffsynth/models/minimax_h3_dit.py (patched)
@@ -178,7 +249,34 @@ H3 的视频 latent 分组非均匀：`_FRAME_PER_TOKEN = (1, 4, 4, 4, 4)`，每
 >
 > **Per-latent（行 2）**——每个 latent 各分配一句文字，但没有有向掩码（action span 和 video latent 没有绑定）：两者都失败（❌❌）——语言信息 leak 到其他时刻，产生混淆。
 >
-> **H3-World（行 3）**——per-latent 文本 + 有向掩码：Action control ✅，Temporal control ✅。光流测量值：切换前 +52.7（向左），切换后 -106.0（向右）；冻结 H3 对应值为 -17.3 / 0.0，说明控制精度提升超过 6×。
+> **H3-World（行 3）**——per-latent 文本 + 有向掩码：Action control ✅，Temporal control ✅。
+
+**实验设计本身很讲究**：相机调度为**前 15 个时间 latent 急速左摇、后 22 个急速右摇**，切换点正好落在 latent block 边界上。这要求模型既跟对两个方向，又把各自分配到指定区间；而**「在同一 clip 内反转」这个设计控制掉了场景漂移**这个混淆因素。
+
+**全文唯一的量化指标**是 Farneback 稠密光流累加的**平均水平光流**（正值=向左，负值=向右）：
+
+| 条件 | 切换前累计水平光流 | 切换后 |
+|---|---|---|
+| Global prompting | **0.0** | **−17.3** |
+| Zero-LoRA per-latent | **−0.1** | **0.0**（平均绝对水平光流仅 **0.003**） |
+| **H3-World** | **+52.7** | **−106.0** |
+
+⚠️ **注意 global prompting 的读法**：它**切换前是 0.0、切换后才是 −17.3**——即**只跟到了第二段（向右），第一段要求的向左运动完全没有响应**。这正是"全局文本表示在整个 horizon 上共享、无法把方向绑到 latent 区间"的直接体现。
+
+**把指令顺序反过来重跑，结论一致**：global 得 **−11.9 / +24.1**，zero-LoRA 依然无响应，H3-World 得 **−58.7 / +121.0**。
+
+📌 **但最有价值的是下面这条对照**——论文主动报告了一个对自己不利的数字：
+
+> **恒定动作**（整段只有一个相机方向）时，global prompting 与 H3-World 的方向性分离几乎相同：**301.8 vs 300.5**。
+
+**这条负结果精确地划定了本文的贡献边界**：
+- **冻结的 H3 确实能响应粗粒度动作指令**（301.8 已经很强）——**动作响应能力基本是预训练白送的**；
+- 它的问题在于**全局文本表示在整个 horizon 上是共享的，无法把每个方向绑到特定 latent 区间**；
+- 而 zero-LoRA 那一行则证明**光给出 span 专属指令也不够**——必须靠 LoRA 让骨干学会**使用**这些时间绑定。
+
+> ⚠️ **所以本文的增量要精确表述为：把预训练里已有的「粗粒度动作响应」变成「时间上可寻址的响应」。** 不是造出了控制能力，是给已有的控制能力装上了时间轴。
+>
+> 📌 **一个重要推论**：这套方法**不可移植到不具备语言控制能力的底座上**。如果你的 base model 在冻结状态下拿不到类似 301.8 的响应，前提就塌了。
 
 ### 7.2 与 Feature-space 注入基线对比（Fig 5）
 
@@ -208,7 +306,13 @@ H3 的视频 latent 分组非均匀：`_FRAME_PER_TOKEN = (1, 4, 4, 4, 4)`，每
 
 ![Fig 8: 组合泛化与跨场景泛化](./figures/H3-World-Action-Generalization.png)
 
-> 见 Section 4.3 中的动作空间分析——训练集未覆盖的 52/135 组合，H3-World 仍能通过文本语义组合理解来生成正确响应（比如"forward + pan-left-fast"从未出现过）。
+> **Fig 8 解读**：四行分两组，每组 `SEEN ACTION`（绿标）对 `UNSEEN ACTION`（橙标）。
+> - **上两行**：held-out gameplay 观测（写实的草坡+树林场景）
+> - **下两行**：**分布外观测**（紫色调的科幻星球，双月+外星植被，风格与训练集完全不同）
+>
+> 测的是一个**未见过的联合命令**——前进动作 + 相机 pan–tilt，两个子句各自在别的组合里出现过、但从未同时出现。H3-World 在两种观测上都同时跟随了角色和相机分量，且保住了场景布局与主体外观。
+>
+> ⚠️ **但要看清测试规模**：135 个结构有效的组合里有 **52 个从未见过**，而论文**只定性地测了其中 1 个**。论文在 limitation 里承认了这点（"evaluated mainly through representative examples"），态度诚实，**但结论的强度就只能到这里**——`1 / 52` 的覆盖率不足以支撑"组合泛化成立"这个一般性论断。
 
 ### 7.5 视觉泛化（Fig 9）
 
@@ -219,6 +323,28 @@ H3 的视频 latent 分组非均匀：`_FRAME_PER_TOKEN = (1, 4, 4, 4, 4)`，每
 ---
 
 ## 8. 争议/权衡
+
+### 8.1 证据强度上的问题
+
+**① 全文只有一组光流数字，没有任何标准量化评测。** 这是最大的问题。一篇主张"**精确**控制"的论文，**没有给出任何控制精度指标**——没有动作跟随准确率、没有相机轨迹误差、没有与 GT 的 PSNR/SSIM/LPIPS、没有 FVD、没有 VBench、**没有用户研究**。128 条 held-out clip 被反复提到，但**没有在它们上面报告任何聚合数字**。所有"有效""精确""保持质量"的结论都靠代表性样例支撑。
+
+**② 单出口路由——命名的核心贡献，零隔离证据。** §7.1 的三条件对照拆的是 **LoRA** 和**逐 latent 接口**，**唯独没有拆路由掩码**。"去掉 mask、让动作 span 自由注意所有 latent"这个最直接的消融**没做**，所以**无法判断控制泄漏是否真的被抑制、抑制了多少**。
+
+**③ 组合泛化的证据是 1 / 52。** 见 §7.4。
+
+**④ 与最接近的工作 Incantation 没有实验对比。** 论文 §2.2 明确说 Incantation "most closely related"——同样是**逐 latent 帧的自然语言 + 局部 text cross-attention**。论文给出的区分理由是**架构设定不同**（H3 是打包单流 self-attention、无独立 text cross-attention），这个理由成立，**但不能替代实验比较**。
+
+**⑤ "0.199%" 是个漂亮但需要换算的数字。** 33B × 0.199% ≈ **6600 万参数**，rank-32 LoRA 在这个尺度上是常规量级，不算特别小。真正省的是**训练成本**（8k 样本 / 10k 步），这一点确实扎实。
+
+**⑥ 训练数据集中度极高，且未分开报告可靠性。** Fig 4 显示 Top-20 组合占 71.4%，`Stand still` 那一行独占大量万级样本——**"站着不动 + 各种镜头"是压倒性的多数**，真正的复杂角色移动样本稀疏。**这意味着模型在角色控制上的可靠性很可能远低于相机控制，而论文没有分开报告。**
+
+### 8.2 正面
+
+**⑦ §7.1 的实验设计质量明显高于全文其它部分。** 三条件对照拆解干净、切换点对齐 latent 边界、同 clip 内反转控制场景漂移、还额外做了**反序重跑**验证。尤其是**主动报告 301.8 vs 300.5 这个对自己不利的恒定动作结果**——它把"我们的贡献是时间绑定而非动作响应"这件事讲清楚了。**这种自我设限在这类论文里少见。**
+
+**⑧ limitation 写得诚实。** 明确承认短 horizon、评测靠代表性样例、缺系统性评测、固定长度片段、**无持久世界状态 / 无实时交互 / 无规划 / 无策略学习**。
+
+### 8.3 工程层面的权衡
 
 | 维度 | 说明 |
 |------|------|
@@ -261,4 +387,40 @@ A: 两者在目标上有根本差异：
 | backbone 规模 | 33B T2V | 未公开（推测更小） |
 
 H3-World 更接近"可以接受游戏手柄输入的 T2V 模型"；EVOKE 更接近"可以按段落切换叙事的长视频生成器"。
+
+---
+
+**Q: 想在自己的项目里复现这套思路，最关键的几个点是什么？**
+
+A: **五个点，前两个决定成败。**
+
+1. **先验证底座的零样本语言控制能力。** 拿冻结模型 + 一条全局动作指令跑光流，看有没有明显的方向性响应。**没有的话不要继续**——H3-World 的全部前提就是那个 301.8（见 §7.1）。
+2. **动作 prompt 的语法必须在整个数据集里严格一致。** 论文强调 "character and camera clauses follow a shared grammatical structure across the dataset"。这是组合泛化的来源：模型要能把角色子句和相机子句识别成两个独立槽位。**随意措辞会毁掉这一点。**
+3. **位置编码用平移而不是新建。** `τ(A_k) = τ(V_k) − Δ` 这个技巧零成本：相对时序与视频对齐，同时因为减了 `Δ` 而仍落在文本侧区间，**不破坏预训练的「文本在前、视频在后」顺序**。
+4. **按键状态的聚合规则要定死。** 区间内**任一帧按下即 active**，且**相反按键先抵消**再构造 prompt（代码层面对应 `bin_to_latent` 的 `amax`）。这两条决定了标注的一致性。
+5. **注意数据分布。** Fig 4 显示 `Stand still` 一行样本量碾压其它行、Top-20 组合占 71.4%。⚠️ **如果你更关心角色移动而非镜头运动，需要专门补数据。**
+
+---
+
+**Q: 它和仓库里其它世界模型/视频控制的工作是什么关系？**
+
+A: **H3-World 走的是"零新模块"路线，与其它几篇的控制注入方式形成对照。**
+
+| | 控制怎么进模型 |
+|---|---|
+| **H3-World** | **不加模块**——翻译成文本，走底座原生文本通路 + 位置平移 + 注意力掩码 |
+| [ABot-World-0](../abot_world_0/analysis.md) | **加性注入 patchify**——8 维原始键盘 multi-hot 打包×4 加到 patch embedding 上，**明确拒绝相机位姿**（长 rollout 会漂出分布） |
+| [SolarWM](../solarwm/analysis.md) | **折进 attention**——fused-PRoPE 把投影旋转作用到 Q/K/V |
+| [ReWorld](../../video_generation/reworld/analysis.md) | **改 attention 本身**——PM-RoPE / E-PRoPE，混合逐 head 注意力窗口 + landmark bank 做长时记忆 |
+| [EVOKE](../evoke/analysis.md) | **外挂几何状态**——Pi3X 点云做 World State Bank 持久化 |
+| [WorldDiT](../worlddit/analysis.md) | **共享骨干双输出**——同一 DiT 同时回归 action velocity 和 RGB patch velocity |
+| [AWoMo](../awomo/analysis.md) | **不碰控制接口**——解决的是上游数据问题（游戏引擎 verifier 做递归数据飞轮） |
+
+📌 **数据上的直接关联**：H3-World 的训练数据 **ABot-World-Explorer-500h 出自 [ABot-World-0](../abot_world_0/analysis.md) 的 WorldExplorer**——两篇是同一套数据的上下游。有意思的是**两篇的动作接口哲学相反**：ABot 用 8 维原始键盘 multi-hot 直接注入，H3-World 把**同一批键盘状态翻译成自然语言子句**走文本通路。**同一份数据、两种控制表示，可惜没人做过直接对比。**
+
+📌 **另一个第三方旁证**：[SolarWM](../solarwm/analysis.md) 的 Table 4 显示 **ABOT 这个 owner 在统一标准下保留率 99.6%、且 99.2% 直进 xhigh**——即这套数据的质量确实极高（对比 MiraData 被拒 85%）。
+
+📌 **底座关联**：[RAVEN](../../video_generation/raven/analysis.md) 的代码库里附带一个 `projects/minimax_h3/`，提供 MiniMax-H3 上的 causal/streaming teacher-forcing、DMD、TSCD 路径。**两篇是同一底座的两个方向**——RAVEN 那边做**加速**（few-step 因果化），H3-World 这边做**控制**。理论上可以叠。
+
+⚠️ **对比时要注意评测强度差异很大**：ReWorld 和 EVOKE 都有完整的量化表格和 baseline 对比，H3-World 只有一组光流。**跨篇比较结论时不要把它们放在同一置信水平上。**
 

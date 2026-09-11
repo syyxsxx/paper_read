@@ -477,4 +477,4 @@ A: **RL 那部分是 DiffusionNFT 那条线的多模态延伸。**
 | [RAVEN](../raven/analysis.md) / [LongLive2](../longlive2/analysis.md) | Self-Forcing / Causal Forcing 那条线——**DreamX 的 self-rollout DMD 蒸馏是同一思路搬到超分精修上** |
 | [ReWorld](../reworld/analysis.md) | ⚠️ **注意重名**：ReWorld 笔记里作为 baseline 出现的 "DreamX" 是一个**相机可控世界模型**，与本篇的 DreamX-Creator **不是同一个东西** |
 
-📌 **一个跨篇的观察**：**MiniMax-H3 在这个仓库里出现的频率越来越高**——[H3-World](../../world_model/h3_world/analysis.md) 把它改造成交互世界模型、RAVEN 的代码库附带 `projects/minimax_h3/` 做因果加速、本篇把它当作最强的开源对照（且多数音频指标上打不过）。**它正在成为音视频联合生成这条线的事实基准。**
+📌 **一个跨篇的观察**：**MiniMax-H3 在这个仓库里出现的频率越来越高**——[H3-World](../../world_model/h3world/analysis.md) 把它改造成交互世界模型、RAVEN 的代码库附带 `projects/minimax_h3/` 做因果加速、本篇把它当作最强的开源对照（且多数音频指标上打不过）。**它正在成为音视频联合生成这条线的事实基准。**
