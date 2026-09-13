@@ -45,6 +45,7 @@
 | [GameWAM: A World Action Model for Video Games](./gamewam/analysis.md) | gamewam | D 世界-动作模型(游戏) | 复旦+LIGHTSPEED+清华 SIGS, 2026-09 | 并行 Video DiT + Action DiT 联合 flow matching,predict-long/execute-short(P=16/E=8),原生 22 维键鼠不做离散化 + per-step router 切 gameplay/GUI,三级记忆;MCU Avg Mini 50.7/All 46.6 与 ViZDoom 四图第一。真正的贡献是发现并诊断 LASI:采样噪声的低频分量被迭代生成路径放大近 7 倍后盖印到输出动作上(donor swap 94.8% / zeroing 99.25% / 闭环置换检验 p=0.001)。⚠️ 但零视频预测指标、主结果建立在未量化的 LASI 缓解上、训练片段跨度比评测上限短约 15× 致长期记忆很可能从未被训到 |
 | [SolarWM: Open Data and Scalable Training for Long-Horizon Video World Models](./solarwm/analysis.md) | solarwm | A 交互式视频世界模型(开源基建) | 港中深+SLAI+NUS+NVIDIA 等, 2026-09 | 1.43M clip/25.85 TB 多源数据引擎(先全量处理后选择、rejected 带原因发布、三命名空间分离)+ 双向(fused-PRoPE)→TF-AnyFlow→DMD 三阶段在四个骨干(Wan2.2-5B/14B、LTX-2.5-22B、MiniMax-H3-33B)上实例化;只训 5s 出小时级 rollout,不用 attention sink。数据工程规范是仓库同类里最严谨的。⚠️ 但全文零量化零消融却两次宣称 SOTA,因果结果只有 5B 一个模型 |
 | [H3-World: Turning Language Understanding into World Control](./h3world/analysis.md) | h3world | A 交互式视频世界模型 | Tencent+NUS+HKPolyU, 2026-09 | 把键鼠动作翻成「角色子句+相机子句」文本，逐 latent 绑定单出口路由（Ak 只和 Vk 互见），33B MiniMax-H3 上只训 0.199% LoRA（65.6M）；但全文仅一组光流数字、路由无消融、52 个未见组合只定性测了 1 个 |
+| [Programmable World Model](./pwm/analysis.md) | pwm | A 交互式视频世界模型 | Alaya Lab, 2026-09 | 把世界状态维护与视觉渲染彻底解耦：确定性引擎执行可编程规则维护 OBB+属性+关系，State Compiler 投影为 Identity/Semantic/Direction 三张控制图，LingBot-World-v1 冻结主干+ControlNet 渲染；CombatStateBench Count Acc. 94%/State Acc. 98%，超 baseline 53-90pp |
 
 ## 核心问题
 
