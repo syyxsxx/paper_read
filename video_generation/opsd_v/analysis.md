@@ -479,6 +479,10 @@ A: **它是 D-OPSD（T2I）到视频域的扩展，同时也是 Self-Forcing 那
 | **[SolarWM](../../world_model/solarwm/analysis.md)** | 同样在做 few-step 因果化的后训练，但走的是 TF-AnyFlow → DMD 路线 |
 | [PDD](../pdd/analysis.md) | 同为 few-step 蒸馏，但切的是并行解码维度 |
 
-📌 **一条值得注意的脉络**：**"DMD 的 teacher 是短片段的，这是长时程的天花板"这个判断，在仓库里已经被三篇独立提出**——ABot-World-0 的 LongForcing（拉长 teacher 时域）、SolarWM 的 TF-AnyFlow（省掉专门的少步初始化阶段）、以及本篇（换 teacher 的 cache）。**三者给出了三种不同的解法，但谁都没和另外两个比过。**
+📌 **一条值得注意的脉络**：**"DMD 的 teacher 是短片段的，这是长时程的天花板"这个判断，在仓库里已经被五篇独立接受**——本篇（换 teacher 的 cache）、[ABot-World-0](../../world_model/abot_world_0/analysis.md) 的 LongForcing（拉长 teacher 时域）、[Mask Forcing](../mask_forcing/analysis.md)（扰动 student 的 rollout 输入）、[ForgeWM](../forgewm/analysis.md)（改阶段结构）、[SolarWM](../../world_model/solarwm/analysis.md)（合并掉少步初始化阶段）。**五篇两两之间 10 对组合，做过模型质量定量对比的是 0 对。**
+
+📌 **完整横向对照见 [dmd_few_step_ar](../dmd_few_step_ar/analysis.md)。** 对本篇最相关的两条：
+- **本篇与 [Mask Forcing](../mask_forcing/analysis.md) 是最该被直接对比的一对**——同 backbone（Wan2.1-T2V-1.3B）、同 NFE=4、**同 base model（Self-Forcing / LongLive）**，且打的位置正交、可叠加。Mask Forcing 引用了本篇但归入"被批评的一类"、未对比。⚠️ 成本差距是结论的一部分：Mask Forcing 是 8 卡 ×14 小时的零成本插件，本篇是 24×H800 ×200 步 + 3,800 条自建真实长视频。
+- **本篇是五篇里唯一换掉 DMD 目标的**（纯 velocity MSE）。而 ForgeWM 的 Table A2 独立测出 DMD 阶段会把 paired LPIPS 从 0.605 推回 0.617、只换来 IQ 0.659→0.716。**"DMD 在用 paired 保真度换 per-frame 观感"这条，是三个团队独立同向给出的。**
 
 ⚠️ **另外注意 Wan 版本**：OPSD-V 用的是 **Wan2.1-T2V-1.3B**，而 [ABot-World-0](../../world_model/abot_world_0/analysis.md) 用 **Wan2.2**。**跨篇比数字时要留意底座不同。**

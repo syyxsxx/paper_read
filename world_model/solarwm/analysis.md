@@ -556,3 +556,24 @@ A: **同期、同技术线、互为参照——而且 SolarWM 把 ABOT 当成了
 3. **两篇在"少步初始化要不要专门阶段"上给出了相反答案**：ABot 用 ODE 蒸馏，SolarWM 说 TF-AnyFlow 可以省掉它。**谁对目前无法判断**——SolarWM 没做对照，ABot 也没试过 AnyFlow。
 
 ⚠️ **系统性问题**：这两篇加上 [minWM](../../video_generation/minwm/analysis.md)，构成了仓库里"世界模型全栈报告"这一类的三篇——**共同特征是工程细节丰富、量化证据薄弱**。跨篇比较时不要把它们的宣称放在同一置信水平上：**ABot 有系统表和(自家)benchmark，SolarWM 有最严谨的数据规范但零结果，minWM 两者都缺。**
+
+---
+
+**Q: "不需要专门的 ODE/CD 初始化"这条，有没有别的论文的数据可以对照？**
+
+A: **有，而且方向相反 —— [ForgeWM](../../video_generation/forgewm/analysis.md) 的 Table A2 是目前这个问题上唯一的量化证据。**
+
+ForgeWM 用统一的 4 步 schedule、1,000 条 paired trajectory 做了逐阶段推理消融（**带 bootstrap CI**）：
+
+| Stage | 推理形态 | LPIPS↓ |
+|---|---|---|
+| 0 | 双向 teacher | 0.814 [.809,.819] |
+| 1 | teacher-forced causal | 0.806 [.799,.812] |
+| **2** | **causal consistency（= SolarWM 声称可省掉的那一步）** | **0.605** [.600,.610] |
+| 3 | DMD | 0.617 [.613,.620] |
+
+**Stage 1→2 是全流程唯一 CI 不重叠的大跳**，ForgeWM 的原话是 *"causal consistency distillation, rather than teacher-forced causalization alone, is the stage that enables effective few-step sampling."*
+
+⚠️ **但准确的读法比"两篇结论相反"细一层**：**ForgeWM 证明的是"少步化这个*效果*是决定性的"，不是"它必须是一个*单独的阶段*"；SolarWM 主张的恰恰是"这个效果可以在 TF 阶段里顺便拿到"。两篇其实共同指向同一件事——少步能力必须被显式训进去。分歧只在它要不要占一个独立阶段，而这一点目前完全没有实验裁决**（ForgeWM 没试过 AnyFlow，SolarWM 没做对照）。
+
+📌 **五篇的完整横向对照见 [dmd_few_step_ar](../../video_generation/dmd_few_step_ar/analysis.md)** —— 含流水线定位图、设定对照、三处真正的分歧、共有的方法学问题与最该补的五个实验。

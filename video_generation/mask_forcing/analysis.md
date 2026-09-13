@@ -448,7 +448,11 @@ A: **四篇都在给"DMD 蒸馏出来的 few-step 因果 AR 视频模型"打补�
 | [ABot-World-0](../../world_model/abot_world_0/analysis.md) | **teacher 的监督时域** | LongForcing：把 DMD 阶段 teacher 的监督横跨更长 rollout |
 | [SolarWM](../../world_model/solarwm/analysis.md) | **蒸馏的阶段结构** | TF-AnyFlow 一步顶掉 Causal ODE / Causal CD 初始化阶段 |
 
-📌 **四篇的共同前提完全一致**：**DMD 的 teacher 是短片段的双向模型，这是长时程质量的天花板。** 但**没有任何两篇做过互相对比**——Mask Forcing 引用了 OPSD-V 但归入"被批评的一类"且未对比；ABot 和 SolarWM 互不引用。
+加上 [ForgeWM](../forgewm/analysis.md)（改**阶段结构**：四阶段渐进 + 同 checkpoint 的离线 replay 精修）一共是五篇。
+
+📌 **五篇的共同前提完全一致**：**DMD 的 teacher 是短片段的双向模型，这是长时程质量的天花板。** 但**五篇两两之间 10 对组合，做过模型质量定量对比的是 0 对**——Mask Forcing 引用了 OPSD-V 但归入"被批评的一类"且未对比；ABot 和 SolarWM 互不引用。
+
+📌 **完整的横向对照见 [dmd_few_step_ar](../dmd_few_step_ar/analysis.md)。** 对本篇最相关的一条结论是：**Mask Forcing 与 OPSD-V 是五篇里最该、也最容易被直接对比的一对**——同 backbone（Wan2.1-T2V-1.3B）、同 NFE=4、**同 base model（Self-Forcing / LongLive）**，而且两者打的位置正交（本篇动 student 的输入，OPSD-V 动 teacher 的上下文并换掉 DMD 目标），**理论上可以叠加**。⚠️ 但两篇在"该往哪个方向调散度"上直觉相反：本篇认为 reverse KL 的 mode-seeking 有害、要往 mode-covering 推；OPSD-V 的 loss 是纯 velocity MSE（典型 mean-seeking），**却拿到了 Dynamic Degree 上升**。
 
 ⚠️ **还有一层需要注意**：Mask Forcing 的作者与 [SolarWM](../../world_model/solarwm/analysis.md) **至少 5 人重叠（含一作、二作）**，附录的相机控制实验直接 "following SolarWM"，但全文以第三人称引用、无自引用披露。
 

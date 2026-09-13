@@ -457,11 +457,15 @@ A: **五篇打在五个不同位置，而且互相之间几乎不引用。**
 | [ABot-World-0](../../world_model/abot_world_0/analysis.md) | **teacher 的监督时域**——LongForcing 把 DMD teacher 横跨更长 rollout |
 | [SolarWM](../../world_model/solarwm/analysis.md) | **蒸馏的阶段结构**——TF-AnyFlow 一步顶掉 Causal ODE / CD 初始化 |
 
-📌 **ForgeWM 与 SolarWM 的对比特别有意思，因为它们的结论正好相反**：
-- **SolarWM 主张 TF-AnyFlow 可以省掉专门的少步初始化阶段**
-- **ForgeWM 的 Table A2 恰恰证明"专门的少步初始化阶段（Stage 2 causal consistency）才是决定性的那一步"**（LPIPS 0.806 → 0.605）
+📌 **五篇的完整横向对照见 [dmd_few_step_ar](../dmd_few_step_ar/analysis.md)**（含流水线定位图、设定对照、三处真正的分歧、共有的方法学问题与最该补的五个实验）。
 
-**两篇没有互相引用**（时间上 ForgeWM 2608 早于 SolarWM 2609，SolarWM 引用了 ForgeWM 但未对比），**也没人做过直接比较**。这是个很具体的开放问题。
+📌 **ForgeWM 与 SolarWM 是这五篇里唯一一处正面冲突**：
+- **SolarWM 主张 TF-AnyFlow 可以省掉专门的少步初始化阶段**
+- **ForgeWM 的 Table A2 证明"少步化"这一步是决定性的**（LPIPS 0.806 → 0.605，全流程唯一 CI 不重叠的大跳）
+
+⚠️ **但准确的读法比"结论相反"细一层**：**ForgeWM 证明的是"少步化这个*效果*是决定性的"，不是"它必须是一个*单独的阶段*"；SolarWM 主张的恰恰是"这个效果可以在 teacher forcing 阶段里顺便拿到"。两篇其实共同指向同一件事——少步能力必须被显式训进去，不能指望 Stage 3 的 DMD 顺手解决。分歧只在它要不要占一个独立阶段。**
+
+**SolarWM 的 Table 1 列了 ForgeWM 一行但未对比**，ForgeWM 早于 SolarWM 故未引用，**没人做过直接比较**。裁决它需要的是 "TF-AnyFlow vs (TF + Causal ODE/CD)" 的并排实验。
 
 ⚠️ **ForgeWM 的引用面很窄**：**CausVid、Self-Forcing++、LongLive、Rolling Forcing、DMD2、OPSD-V（早于本文）全部未引用**；同 Minecraft 域的 MineWorld、同族的 Matrix-Game 3.0、最接近的 Causal-rCM 都只引用不对比。**连 backbone 用的 Wan2.1 都没有文献条目。**
 
