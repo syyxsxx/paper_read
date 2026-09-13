@@ -83,6 +83,18 @@ $$
 
 📌 **这一步是整篇的关键，而且它是精确的、不是类比**：OPD 的 stop-gradient 实现让 log-ratio 变成了一个逐 token 的常数系数，这个系数在数学上占据了 RLVR 里 reward 的位置。**OPD 不是「像」RL，它就是一个 token 级 reward 由 teacher 给的 policy gradient。**
 
+🔴 **但这条改写不是本篇首创 —— 补记（2026-09 复核）**：[Decoupling KL and Trajectories](../decoupling_kl/analysis.md)（arXiv:**2605.16826**，**2026-05-16，早三个月**）的 **Proposition 1(ii)** 已经给出同一条恒等式：
+
+$$
+\nabla_\theta\, \mathrm{KL}\big(q_\theta \Vert p_T\big) = \mathbb{E}_{y \sim q_\theta}\Big[\big(\log q_\theta(y) - \log p_T(y)\big)\,\nabla_\theta \log q_\theta(y)\Big]
+$$
+
+原话是 *"minimizing reverse KL gives a **REINFORCE-style ascent direction with dense reward** `r = log p_T − log q_θ`, treating r as scalar feedback, i.e., **stopping gradients through r**"* —— **连 stop-gradient 都写明了**。差别只在本篇用的是单样本 MC 估计（sampled-token），而那篇写的是完整期望形式 —— **前者是后者的单样本实现，不是不同的结果。** 而那篇自己也没把它当新结果，明确归给了 MiniLLM（Gu et al., ICLR 2024）与 [Thinking Machines 的博客](../on_policy_distillation/blog_zh.md)。
+
+⚠️ **本篇的参考文献里，这三个出处一个都没有** —— 它在 §2 把 OPD 归给了**四个用了 OPD 的模型技术报告**（DeepSeek-V4、MiMo-V2-Flash、Qwen3、GLM-5）。**把范式的出处记成"谁在用它"而不是"谁形式化了它"，是这条改写读起来像原创的直接原因。**
+
+📌 **不过要把账算公道：本篇真正新的那一步，那篇确实没有。** [Decoupling KL](../decoupling_kl/analysis.md) 全文不出现 "unbounded"/"sign of"/"correctness"/"verifiable"（逐个 grep 均为 0）—— **「这个 reward 的符号只由谁更自信决定、与轨迹对错无关，因而违反 RLVR 约定」这个观察，以及由它导出的 ReLU 门，是 OPDVR 的贡献。**
+
 ### 3.2 两类冲突 token
 
 把 `R_OPD` 按轨迹正确性重写：

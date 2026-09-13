@@ -239,6 +239,19 @@ $$
 
 同一个 teacher 下，论文对比了 OPD 与它的 off-policy 对应物（SFT on teacher traces），结论是 **OPD 提供更强的冷启动**。理由与 GKD 那条线一致：SFT 学的是 teacher 分布上的轨迹，而推理时学生从自己的分布采样，存在 exposure bias。
 
+⚠️ **但这个"SFT"只是四种可能里的一种 —— 补记（2026-09 复核）**：按 [Decoupling KL and Trajectories](../decoupling_kl/analysis.md)（2605.16826）的 2×2 坐标，**「前缀从谁来」与「KL 往哪个方向」是两个独立的轴**：
+
+| | Forward KL | Reverse KL |
+|---|---|---|
+| **Teacher 前缀** | **本文的 SFT baseline**（off-policy SFT） | offline-RL 式蒸馏 |
+| **Student 前缀** | **DAgger 式 on-policy SFT ⬅ 本文从未测过** | **本文的 OPD** |
+
+🔴 **而那篇测出来的赢家恰恰是本文没测的那一格**：4096-token 蒸馏后接 GRPO，**student-prefix reverse KL（= OPD）从 45% 掉到 36%，而 student-prefix forward KL（= DAgger）从 40% 涨到 45%**。它的结论是 *"reverse KL can produce a stronger pre-RL model, but its reduced entropy constrains exploration… **forward KL is a more reliable initialization**"*。
+
+📌 **两篇不矛盾，因为对照组不同** —— 本文比的是 OPD vs **off-policy** SFT（左上格），那篇比的是 reverse vs forward KL **在同一个 student 前缀下**（右下 vs 右上）。**「OPD > off-policy SFT」与「DAgger > OPD」可以同时为真。**
+
+⚠️ **但那篇给本文的结论加了一个真实的风险提示**：它发现 **长程 reverse KL 会把熵压到接近 0，从而提前烧掉 RL 的探索空间**。回看本文 Fig 3 的第四个面板 —— **OPD-then-RL 的 `H(p_S)` 最终约 0.025，已经很接近塌了**，只是本文没把它当风险。📌 **一个可能的调和是：本文的 OPD-then-RL 之所以有效，恰恰因为它在第 60 步就切走了，没给 reverse KL 足够时间压死熵。** 而 §5.1 的消融显示 **K&K/Zebra 上 S=100 比 S=60 更好** —— **如果继续往后推，那篇预测的退化应该会出现；本文没有测到 S 更大的区间。**
+
 ---
 
 ## 6. 争议与权衡
