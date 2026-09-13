@@ -462,3 +462,23 @@ $$
 | **换到连续域** | [DiffusionNFT](../../image_generation/diffusion_nft/analysis.md)、[Flow-OPD](../../image_generation/flow_opd/analysis.md)、[DanceOPD](../../image_generation/danceopd/analysis.md)、[Self-OPD](../../image_generation/self_opd/analysis.md)、[D-OPSD](../../image_generation/d_opsd/analysis.md)、[DiffusionOPSD](../../image_generation/diffusion_opsd/analysis.md)、[OPSD-V](../../video_generation/opsd_v/analysis.md) | token → velocity / score |
 
 📌 **第三行现在已经挤了六篇以上，而它们互相之间基本不引用。** OPDVR 不引 OPSA、不引 GKD、不引 OPSD；OPSA 也不引 SG-OPD。**这一格最缺的不是第七篇方法，是一次统一设定下的横向对照。**
+
+---
+
+### 🔴 补记（2026-09）：本篇属于一篇同期工作判定为「较弱」的那一类
+
+[Sequential Beats Joint](../opd_then_rl/analysis.md)（arXiv:2609.04108，2026-09-04）把所有 OPD×RLVR 的融合方法统一成 token 级 advantage 的两类，其中**范式 II「Teacher-Modulated」的定义是**：
+
+$$
+A_t^{\mathrm{mod},(i)} = m\big(d_t^{(i)}\big)\cdot \hat{A}^{(i)},\qquad m > 0,\quad \mathrm{sign}(A^{\mathrm{mod}}) = \mathrm{sign}(\hat{A})
+$$
+
+原话是 *"uses the teacher signal only to modulate the magnitude of the RLVR advantage, leaving the sign determined entirely by the verifiable reward"* —— **这正是本篇 §4.1 的「verifier 定符号、teacher 定幅度」。**
+
+⚠️ **一处需要说准的差别**：那篇写的是 `m > 0`（严格正），而 **OPDVR 的 ReLU 会取到 0**（约一半 token 被清零）。所以 **OPDVR 是范式 II 的极限情形**，而不是它直接测过的实例（它测的是 TRRD 和 RLSD）。**两篇同期、互不引用。**
+
+📌 **但它的实测结论与本篇 §4.3 的推导是同一件事**：那篇测出 teacher-modulated 这一类 *"keeping the performance **close to pure OPD**"*，而本篇是从门控结构推出 **teacher 是硬上界（单向棘轮）**。**一条从 loss 结构推、一条跨方法实测，指向同一个天花板。**
+
+🔴 **最锋利的对照是「学生有没有超过老师」**：OPDVR 三张主表**平均分从未超过 teacher**；而 OPD-then-RL 在 logic 上 **pass@1 80.6 vs teacher 59.9、pass@32 98.3 vs 96.2，两个轴都反超**。⚠️ 不过那篇在 math 上同样超不过 teacher（31.8 vs 50.1），**所以反超与其说来自 sequential 这个形式，不如说来自"teacher 在 logic 上本来就不强"**。
+
+📌 **它给出的出路正好是本篇结构上做不到的那件事**：**换阶段，而不是换权重** —— OPD 阶段把覆盖做大，然后**把 teacher 整个撤出 loss**、让纯 RL 去锐化。一旦 teacher 不在 loss 里，§4.3 那个"梯度在 `π_θ = π_T` 处归零"的约束就自动解除了。这比 [Q2](#q2为什么-opdvr-超不过-teacher能修吗) 里我提的 ExOPD 式 reward extrapolation 更彻底。
