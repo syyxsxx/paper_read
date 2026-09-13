@@ -143,7 +143,19 @@ $$
 - 🔴 **pass@32 的 58.5 排第三** —— **TRRD 58.9、KDRL 58.7 都更高**（论文表格自己把 TRRD 的 58.9 加粗了，诚实）；
 - **所有方法离 teacher 的 50.1 / 77.1 都还很远** —— 数学上没有任何方法接近老师。
 
-**逐列看 math 的子任务，OPD-then-RL 还输了三处**：AMC23 的 p@1（39.2 < SRPO 40.3）、AMC23 的 p@32（85.0 < KDRL 87.5）、AIME24 的 p@1（10.1 < SRPO 10.2）。
+**全表 18 列的完整战绩：赢 11、平手赢 2、输 5。** 输的五列是：
+
+| 列 | OPD-then-RL | 输给 |
+|---|---|---|
+| **Zebra p@32** | 98.4（第 6） | **纯 OPD 100.0**、SRPO/KDRL-mask/TRRD 99.8、KDRL 99.6、KDRL-Anneal 98.6、HDPO 98.0 |
+| AMC23 p@1 | 39.2 | SRPO 40.3 |
+| AMC23 p@32 | 85.0 | KDRL 87.5 |
+| AIME24 p@1 | 10.1 | SRPO 10.2 |
+| **AIME25 p@32** | 23.3（并列第 6） | TRRD 33.3、KDRL 30.0、KDRL-mask 30.0、SRPO 26.7、HDPO 26.7 |
+
+⚠️ **Zebra p@32 这一列尤其值得注意**：**纯 OPD 拿到 100.0，而加了 RL 阶段之后反而掉到 98.4。** 按论文自己的机制叙事（OPD 扩覆盖、RL 锐化），这正是 **RL 阶段把覆盖压回去了** —— 是机制的反例。**论文正文对这五处失利一处都没提。**
+
+⚠️ **还有一句正文断言与表对不上**：§4.2 写 *"On logic reasoning tasks, **every method that combines OPD and RL matches or exceeds both pure baselines**"* —— **在 Logic-Avg pass@32 上，六个 joint 方法里有四个低于纯 OPD 的 94.9**（HDPO 90.6、KDRL 92.4、KDRL-mask 94.1、RLSD 94.8）。这句话只在 Logic-Avg pass@1 上成立（而且 HDPO 是 53.9，与 OPD **打平**而非超过）。
 
 ### 4.1 论文自己的显著性检验（Table 7，附录）—— 全文最该读的一张表
 
@@ -208,6 +220,21 @@ $$
 
 📌 **可操作的判据**：**盯着 OPD 的验证曲线，在它「快速上升期结束」的地方切。** 论文主实验取 60 就是这个位置 —— 拿到了大部分 OPD 收益，又给 RL 留了足够预算。**继续把 OPD 训好能抬高天花板，提前切则把上限锁死。**
 
+📌 **一处对自己不利的诚实**：这个消融显示 **K&K 和 Zebra 上 S=100 比 S=60 更好**，而主表用的是 S=60 —— **也就是说主表里的 OPD-then-RL 并不是它自己最优的配置**。论文没有借此邀功，但读的时候要知道这个方向是保守的。
+
+### 5.1b ⚠️ Table 8 的「+7.2」是对着一个欠训练的 OPD 算的
+
+论文用 Table 8 论证「OPD 比 SFT 是更好的冷启动」，正文写：*"on average p@32 by **7.2 points (51.3 → 58.5)**"*。
+
+🔴 **但 Table 8 的 caption 写明：「OPD results are reported at the switch point (step 60)」** —— 那个 51.3 是**训到一半的 OPD**，不是满预算的 OPD。对照 Table 2 里跑满 120 步的纯 OPD（math Avg **31.0 / 55.9**）：
+
+| 对照基准 | p@1 增益 | p@32 增益 |
+|---|---|---|
+| Table 8 的「OPD only」（step 60，51.3） | +1.5 | **+7.2** |
+| **Table 2 的满预算 OPD（55.9）** | **+0.8** | **+2.6** |
+
+**同一个 OPD-then-RL，换一个诚实的对照基准，p@32 的增益从 7.2 缩到 2.6。** caption 确实披露了 step-60 这件事，所以不算隐瞒；但正文把 51.3→58.5 当作头条增益来引用，而读者很容易把 51.3 读成「OPD 的水平」。**这是全文最容易误读的一个数字。**
+
 ### 5.2 OPD 比 SFT 是更好的 RL 冷启动
 
 同一个 teacher 下，论文对比了 OPD 与它的 off-policy 对应物（SFT on teacher traces），结论是 **OPD 提供更强的冷启动**。理由与 GKD 那条线一致：SFT 学的是 teacher 分布上的轨迹，而推理时学生从自己的分布采样，存在 exposure bias。
@@ -236,14 +263,43 @@ $$
 
 📌 **反过来读，这给出了一条比论文标题更有用的判据**：**当 teacher 在目标任务上已经很强时，OPD 本身就吃掉了大部分收益，后面那段 RL 加不加区别不大；当 teacher 对任务相对陌生时，OPD 只能扩覆盖、必须靠 RL 去锐化，这时分阶段的价值才显现。** 论文没有把这条提炼成结论，但它是全文数据支持最强的模式。
 
-### 6.3 其它
+### 6.3 「teacher 天花板」这个机制只在 K&K / Zebra 上成立
+
+§5.2 的核心机制论证是：*"OPD and all joint methods plateau below the teacher's 56.6 p@1 line, while the two scheduling methods cross it"* —— 持续的 OPD 信号把学生拽回 teacher 分布，挡住了 RL 的锐化。Fig 3 画的正是 K&K。
+
+⚠️ **但在 Countdown 上这条完全不成立**：teacher 的 p@1 是 **58.8**，而 **八个方法都超过了它** —— GRPO 77.5、KDRL-mask 82.5、KDRL 79.9、HDPO 77.9、RLSD 75.8、TRRD 71.2、KDRL-Annealing 70.6、SRPO 61.7。**在 teacher 本来就不擅长的任务上，连纯 GRPO 都能轻松越过所谓的天花板。**
+
+📌 **所以准确的表述是**：「teacher 天花板」是 **OPD 信号在 teacher 相对强势的任务上**才会形成的约束，不是 OPD×RLVR 组合的普遍性质。这与 [§6.2](#62-结论对teacher-与任务的相对强弱高度敏感--而这恰恰是最有价值的一条) 是同一件事的两个侧面。
+
+### 6.4 跨模型族的泛化（Table 6）比主表弱得多
+
+用 OLMo-3.1-32B-Instruct 当 teacher、OLMo-3-7B-Instruct-SFT 当 student：
+
+| | MATH-500 p@1 | MATH-500 p@32 | AIME25 p@1 | AIME25 p@32 | K&K p@1 | K&K p@32 |
+|---|---|---|---|---|---|---|
+| OPD-then-RL | 86.8 | 97.2 | **26.4** | 50.0 | **84.0** | 100.0 |
+| **纯 OPD** | **86.9** | **97.4** | 25.3 | **53.3** | 78.4 | 100.0 |
+| joint baseline | 84.4 | 97.0 | 25.4 | 50.0 | 81.5 | 100.0 |
+
+⚠️ **纯 OPD 在 6 列里赢了 3 列**（MATH-500 两列 + AIME25 p@32）。论文自己的 caption 也承认只有 K&K p@1 和 MATH-500 p@1（相对 joint）显著，*"all other differences are ties"*。
+⚠️ 而且这张表里的 **"joint baseline" 在不同列上是两个不同的算法**（math 用 SRPO、K&K 用 KDRL-Annealing），且 KDRL-Annealing 在主表里被归在 **Scheduling** 而不是 joint。
+⚠️ **Table 5（0.6B 学生）也缩减了对照集** —— 把 HDPO、RLSD 和 KDRL-Annealing（主表 logic 的第二名）都拿掉了，没有说明理由。
+
+### 6.5 其它
 
 - ⚠️ **只有一个 student/teacher 组合**（Qwen3-1.7B-Base ← Qwen3-8B）。规模、家族、能力差距都没有扫描。论文在 Limitations 里承认了 teacher-student 配置的局限（只覆盖"外部更强 teacher"这一种），并把 task-specific teacher、多 teacher、self-distillation 列为 future work。
 - ⚠️ **`S = 60` 的消融只有三个点**（20 / 60 / 100），且是在 logic 任务上做的。math 上切换点的敏感性没测。
 - ⚠️ **pass@k 作为主指标有一个已知的解释风险**：大 k 的 pass@k 与**采样多样性/熵**强相关，而 OPD（reverse KL）和 RL 对熵的影响方向不同。论文用 pass@k 的变化来论证"覆盖扩张"，但**没有把"覆盖真的变大"与"只是熵变高、碰运气碰到了"分离开**。Fig 2 右图（OOD 难度）部分缓解了这个担心，因为难度上升时红线仍然稳在 100。
 - ⚠️ **weighted-additive 的 `β` 按任务调到最优，而 OPD-then-RL 的 `S` 用的是固定 60**。这个方向对 baseline 有利（不是对自己有利），**属于公平性上的加分项**。
-- ✅ **总步数预算对齐**（"All methods are trained under the same total step budget"），这是这类对照最容易翻车的地方，论文明确写了。
-- ✅ **有 Limitations 章节、有 bootstrap 置信区间、有致谢与资助声明。** 在仓库的 OPD 那一簇里，**这是方法学最规范的一篇**。
+- ✅ **总步数预算对齐**（"All methods are trained under the same total step budget"），这是这类对照最容易翻车的地方，论文明确写了。全表 batch 128 × G=8，每步 1024 条 rollout，所以 optimizer step 与 rollout token 两个口径都是齐的。
+- 📌 **而且算力方向其实对论文不利，它自己没说**：joint 方法要在全部 150 步里都跑 teacher 前向，而 OPD-then-RL 只在前 60 步跑 —— **它在 FLOPs 上严格更便宜，却赢了**。这是它手上最强的公平性论据，论文一个字都没提。（反过来 GRPO 完全不需要 teacher，所以真按 FLOP 对齐应该给 GRPO 更多步数 —— 两个方向都没讨论。）
+- ⚠️ **但 math 上的 joint baseline 完全没调参**："we adopt the values reported in their respective papers **without further tuning**"。而论文自己发现 *"weighted-additive methods are highly sensitive to β"* —— **在一个新数据集上用别人论文的 β，是实打实的不公平**，而 math 恰恰是它领先最薄、输掉 4 列的地方。（logic 上倒是按任务扫了 β，但 TRRD 的 α 和 RLSD 的 λ/ε 全程固定未调。）
+- ⚠️ **Reasoning Gym 的评测是同分布的程序生成数据**：训练 20,000 条（seed 1）、评测 512 条（seed 42），**同一个生成器、同一套难度配置、同样的模板**，论文没有做任何去重或污染检查。
+  🔴 **而论文自己知道这个风险** —— 它在 §C.2 用这条理由解释为什么不在 Reasoning Gym 上做 SFT 对照：*"Reasoning Gym puzzles are procedurally generated from fixed templates… SFT can reach high in-distribution accuracy largely by **memorizing question–answer patterns** rather than by acquiring transferable reasoning skills, which would **unfairly inflate the SFT baseline**."* **同样的论证对 Table 2 里那个 26.7 分的 logic 头条战绩同等适用，论文却没有应用。** 唯一的 OOD 探针是 Fig 2 右图，而那张图把所有 joint baseline 都省掉了。
+- ⚠️ **没有训练种子、没有重复运行**。Table 7 的 bootstrap 是**在题目上重采样**，只覆盖评测噪声，**不覆盖训练轮次间的方差**。
+- ⚠️ **硬件与算力完全没给**（GPU 型号/卡数/时长/FLOPs 全无），只能从致谢推出用了 Digital Research Alliance of Canada 与 NYU 的集群。
+- ⚠️ **参考文献的 arXiv 覆盖停在 2605（5 月）**，而这篇是 9 月 4 日的 v2。**[OPSA](../opsa/analysis.md)（2608.31046）与 [OPDVR](../opdvr/analysis.md)（2608.24696）两篇 8 月的直接竞争工作都不在参考文献里** —— 而论文的分类学声明是穷尽式的（*"every combination"*、*"existing methods cleanly split into two paradigms"*）。另外 §7 列了 7 个 joint 工作但只实现了 5 个，所以 *"outperforms all of them"* 也多算了两个。
+- ✅ **有 Limitations 章节、有 bootstrap 置信区间、有致谢与资助声明、所有 baseline 都是自己重跑的（没有一个数字是抄来的）。** 在仓库的 OPD 那一簇里，**这仍然是方法学最规范的一篇**。
 
 ---
 

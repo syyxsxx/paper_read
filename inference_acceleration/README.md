@@ -51,3 +51,5 @@
 | [tdm_r1](./tdm_r1/analysis.md) | TDM-R1: Reinforcing Few-Step Diffusion Models with Non-Differentiable Reward | 4步 RL post-training（非可微奖励） | arXiv 2026-03 (HKUST+CUHK+Xiaohongshu) | [github](https://github.com/Luo-Yihong/TDM-R1) | ✅ |
 | [teacache](./teacache/analysis.md) | Timestep Embedding Tells: It's Time to Cache for Video Diffusion Model | DiT 推理加速(免训练缓存) | CVPR 2025 (UCAS+Alibaba) | [github](https://github.com/ali-vilab/TeaCache) | ✅ |
 | [mrflow](./mrflow/analysis.md) | Multi-Resolution Flow Matching: Training-Free Diffusion Acceleration via Staged Sampling | 多分辨率分阶段采样(免训练) | arXiv 2026-07 (BUAA+NTU+ICT) | [github](https://github.com/xliu-deep/MrFlow) | ✅ |
+| [ctm](./ctm/analysis.md) | Consistency Trajectory Models: Learning Probability Flow ODE Trajectory of Diffusion | 少步蒸馏的**奠基工作**(任意 t→任意 s 的轨迹函数) | Sony AI+CMU+Stanford, **ICLR 2024** | [github](https://github.com/sony/ctm) | ✅ |
+| [uno](./uno/analysis.md) | Unlocking Lossless Speedups in LLMs via Discrete Diffusion | **LLM 解码加速**(扩散当起草器 + AR 验收,无损) | IFM/MBZUAI+Cerebras+Cornell+Harvard, 2026-09 | [project](https://s-sahoo.com/uno) | ✅ |
