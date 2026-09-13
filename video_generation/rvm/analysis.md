@@ -11,6 +11,8 @@
 
 顺带证明了 **RAM 和 DiffusionNFT 都是它的特例**,以及在视频上 **reward 设计比 loss 形式重要得多**。
 
+⚠️ **但最后这条要分层读,论文自己的 Table 2 就能反驳它的强版本**:在**同一套 reward mixture** 下(Table 2 caption 明写 "DiffusionNFT and RAM are trained with the same reward mixture as ours"),三个 loss 的 **dynamic degree 是 47.56 / 51.22 / 72.36,跨度 24.8 分,而且前两个都把运动训到了 base(64.63) 以下**。聚合分(Overall 86.16 / 86.61 / 86.27)确实只差几分 —— 但**在 reward 专门要推的那根轴上,loss 形式决定了这个 reward 到底兑不兑现**。详见 [§7⑩](#7-争议与权衡)。
+
 ---
 
 ## 2. 要解决的问题
@@ -73,7 +75,9 @@ LLM 的 policy gradient 天然成立,因为序列似然可以分解成逐 token 
 
 > **Fig 2 逐面板解读**：两张图左侧都画了同一条竖线和一条 S 形曲线代表 **reward**,上半标 `+`(高 reward 区)、下半标 `−`(低 reward 区),`x_0` 落在 `+` 区。
 >
-> **(a) Trajectory-based**——从 `x_t` 出发的折线是**采样轨迹**,经过若干中间态最后到 `x_0`。蓝色箭头 `v_θ(x_t,t)` 是模型当前方向,橙色箭头 `v_tgt` 指向**下一个去噪态 `x_{t-Δt}`**。关键是看折线形状:`x_{t-Δt}` 在图上被画得**比 `x_t` 离 `x_0` 更远**(折线绕了一圈)。这就是论文的论点——`x_{t-Δt}` 是 SDE 采样出来的随机中间态,**不保证比当前状态更接近干净端点**,所以这个目标方向既有噪声也不是最优的。
+> **(a) Trajectory-based**——从 `x_t` 出发的折线是**采样轨迹**,经过若干中间态最后到 `x_0`。蓝色箭头 `v_θ(x_t,t)` 是模型当前方向,橙色箭头 `v_tgt` 指向**下一个去噪态 `x_{t-Δt}`**。关键是看**折线的方向**:它不是笔直指向 `x_0`,而是偏到一边。论文的论点是——`x_{t-Δt}` 是 SDE 采样出来的随机中间态,**不保证比当前状态更接近干净端点**("need **not** lie closer"),所以这个目标方向既有噪声也不是最优的。
+
+> ⚠️ **这里要说清一个我之前读错的细节**:按 200 DPI 量图上的像素坐标,`x_0`≈(280,237)、`x_t`≈(578,212)、`x_{t−Δt}`≈(505,320),即 `dist(x_t, x_0)≈299` 而 `dist(x_{t−Δt}, x_0)≈240` —— **图上 `x_{t−Δt}` 其实离 `x_0` 更近**。论文的主张是弱得多的"不保证更近",图画的是"目标方向偏离直指 `x_0` 的方向",**不是"更远"**。
 >
 > **(b) Velocity-based**——同样从 `x_t` 出发,但橙色 `v_tgt` 直接指向 `x_0`(图上是一条**直线**)。目标是 `v_tgt = ε - x_0`,由端点定义,与采样器无关。蓝色 `v_θ(x_t,t)` 是当前方向,loss 把它往橙色方向拉(reward 为正时)或推开(为负时)。
 >
@@ -215,7 +219,7 @@ $$
 
 ### 5.2 Reward 混合权重
 
-三个默认 run 共用同一套:
+⚠️ **先纠正一处论文自相矛盾**:App C.3 写 "All three default runs use the same public reward mixture",但 **Table 5 的 caption 明确否定了它** —— "the **two video runs** share the reward mixture of App. C.3, while the **OCR run uses the reward of App. C.2**"(OCR run 用的是 OCR / PickScore / ClipScore / HPSv2.1 的等权和)。**下表是两个视频 run 共用的那一套**:
 
 | 分量 | 权重 | 说明 |
 |---|---|---|
@@ -252,13 +256,14 @@ $$
 | *Velocity-based* | | | | | | | | |
 | DiffusionNFT | 5.03 | 5.04 | 1.63 | 9.70 | 63.89 | 84.37 | 77.28 | 82.95 |
 | RAM | 4.86 | 4.23 | 1.14 | 8.39 | 61.11 | 83.35 | 76.33 | 81.95 |
-| **RVM(本文)** | **5.12** | **5.47** | **1.86** | **10.90** | **75.00** | **86.09** | 76.28 | **84.13** |
+| **RVM(本文)** | 5.12 | **5.47** | **1.86** | **10.90** | **75.00** | **86.09** | 76.28 | **84.13** |
 
 † 引用数字,协议不同(CFG、50 步 SDE、每 prompt 5 条视频),论文明确标注 "uncontrolled"。
 
 三个读法:
 
-- **velocity-based 整体压过 trajectory-based**。三个 velocity 方法(82.95 / 81.95 / 84.13)全部高于三个 trajectory 方法(75.91 / 79.46 / 80.56)。
+- **velocity-based 整体压过 trajectory-based**。三个 velocity 方法(82.95 / 81.95 / 84.13)全部高于四个 trajectory 方法(75.91 / 79.46 / 79.84 / 80.56)。
+- ⚠️ **TA 那一列 RVM 并没有赢**:5.12 **低于 base w/ CFG 的 5.50**。论文 caption 写明 "Bold marks the best entry per column",该列加粗的是 5.50。**所以 RVM 在 Table 1 拿下的是 VQ / MQ / HPSv3 / Dyn.Degree / Quality / Overall 六列,不含 TA。**
 - **RVM 的优势集中在运动**:Dyn. Degree 75.00,而 trajectory 方法只有 55–58。
 - ⚠️ **但 Semantic 是 RVM 唯一的短板**:76.28,**低于 DiffusionNFT 的 77.28,更远低于 base w/ CFG 的 80.64**。VBench Overall 用的加权是 `0.8·Quality + 0.2·Semantic`,**这个 4:1 的权重天然放大了 RVM 在 Quality 上的优势、稀释了它在 Semantic 上的劣势**。
 
@@ -306,12 +311,15 @@ $$
 > **Fig 4 解读**：堆叠柱状图,把训练时间拆成三段——深蓝 `Rollout`、中蓝 `Reward`、浅蓝 `Gradient update`。
 >
 > - **RVM(ours)**:总计 **525 GPU-h**,柱子矮到需要左上角开一个 zoom 小窗才看得清构成。
-> - **FlowGRPO**:**1,159 GPU-h**(标注 `2.2×`),其中 870 是 rollout。
+> - **FlowGRPO**:**1,159 GPU-h**(标注 `2.2×`),**其中 870 在 `Gradient update` 段**(浅蓝)。
 > - **DanceGRPO / TaRoS**:**6,171 GPU-h**(标注 `11.8×`),rollout 2,473 + gradient update 3,270。
+> - 纵轴标注为 **GPU-hours (8×H100)**。
 >
-> 差距的两个来源论文说得很清楚:**(1) 每次 rollout 的函数求值次数不同**——RVM 16 步 ODE 不带 CFG = 16 NFE,FlowGRPO 40 步 SDE 不带 CFG = 40 NFE,DanceGRPO/TaRoS 50 步 SDE 带 CFG = **100 NFE**;**(2) 各自标准协议下的训练迭代数也不同**。
+> 论文把差距归因于 **每次 rollout 的函数求值次数**——RVM 16 步 ODE 不带 CFG = 16 NFE,FlowGRPO 40 步 SDE 不带 CFG = 40 NFE,DanceGRPO/TaRoS 50 步 SDE 带 CFG = **100 NFE**;外加各自标准协议下的迭代数不同。
 >
-> ⚠️ 所以这个 11.8× **不是同协议下的对照**,而是"各自默认配方"的端到端对比。
+> 🔴 **但这张图自己不支持那个归因。** 按 400 DPI 放大逐段核对(图例:深蓝 Rollout / 中蓝 Reward / **浅蓝 Gradient update**):**FlowGRPO 的 870 落在浅蓝的 `Gradient update` 段上,占它 1,159 总量的 75%**,rollout 段目测只有 ~200;DanceGRPO 也有 **3,270 / 6,171 ≈ 53% 在 gradient update**。**换句话说,成本大头是梯度更新而不是 rollout NFE。** 论文正文的因果叙述与自家 Fig 4 的分段读数方向相反。
+>
+> ⚠️ 另外这个 11.8× **不是同协议下的对照**,而是"各自默认配方"的端到端对比。**而且 DanceGRPO/TaRoS 在 Table 1 里是带 † 的引用数字(论文没跑过),Fig 4 却给出了它细到三段的成本分解——这份数据是实测还是估算,论文只字未提。**
 
 ### 6.5 Reward 设计消融（Fig 5，全文最重要的一张图）
 
@@ -358,7 +366,7 @@ $$
 > | 5 | 83.69(−0.43) | 73.62(−9.48) |
 > | 4 | 82.29(−1.83) | 64.39(−18.71) |
 >
-> **base 模型即使开着 CFG 也会随步数减少而崩塌**(83.10 → 64.39),而 RVM 几乎是平的。**RVM 的 4 步结果(82.29)仍然优于 base 的 16 步带 CFG 结果(83.10)之下但很接近**,而后者要花 2× NFE(CFG)× 4× 步数 = 8 倍算力。
+> **base 模型即使开着 CFG 也会随步数减少而崩塌**(83.10 → 64.39),而 RVM 几乎是平的。**RVM 的 4 步结果 82.29 略低于 base 的 16 步带 CFG 的 83.10(差 0.81),但已经很接近**——论文的原话是 "remain **comparable to** the 16-step base model with CFG"——而后者要花 2× NFE(CFG)× 4× 步数 = 8 倍算力。
 >
 > 论文给的解释是:直接把速度往"已被奖励的干净样本 `x_0`"上匹配,**学到的速度场朝高 reward 区域的曲率更小**,所以对粗糙的步长离散化更鲁棒。这个解释合理但**论文没有给曲率的直接测量**,属于事后归因。
 
@@ -366,7 +374,12 @@ $$
 
 ![Fig 3: 定性对比](./figures/fig3_qualitative.png)
 
-> **Fig 3 逐行解读**：同一条 prompt(动画水彩风格、蓬松白云飘过蓝天)下三行对比,每行是 Frame 1/14/27/40/53 的胶片条。
+> **Fig 3 实际是两组共 5 行**(⚠️ 现有裁图只截到了第一组,底部 SkyReels-I2V 那组被裁掉了):
+>
+> - **组 1 — Wan2.1-T2V**,prompt 是动画水彩风格、蓬松白云飘过蓝天,三行 = Base(w/o cfg) / Base(w/ cfg) / RVM,每行是 Frame 1/14/27/40/53 的胶片条;
+> - **组 2 — SkyReels-I2V**,prompt 是 "a man on a surfboard riding a wave in the ocean",两行 = Base / RVM。
+>
+> 下面是组 1 的逐行解读。
 >
 > - **Base(w/o cfg)**——云是模糊的低频色块,几乎看不出结构,帧间变化也很小。
 > - **Base(w/ cfg)**——干净多了,天空通透、云朵成形,**但整段几乎不动**:五帧之间云的位置和形状变化极小。这正好对应 Table 1 里 base w/ CFG 的 Dyn. Degree 只有 65.28,以及 §6.5 说的"偏好 reward 偏爱静止"。
@@ -376,13 +389,58 @@ $$
 
 ---
 
+### 6.9 逐 reward 训练曲线（Fig 8，附录，信息量很大）
+
+![Fig 8: 四个 reward 分量的训练曲线](./figures/fig8_per_reward.png)
+
+> **Fig 8 四面板解读**（横轴 Iteration 0–180；图例：青绿 FlowGRPO(40-step SDE) / 灰 DiffusionNFT / 紫 RAM / **红 Ours(RVM)**；虚线是各条 base 参考线）：
+>
+> - **(a) VideoAlign TA**：终点 RVM **3.50** > RAM 3.32 > DiffusionNFT 3.21，**但三者全部低于 base w/ CFG 的 3.91**（与 Table 1 里 5.50 > 5.12 一致）。🔴 **FlowGRPO 终点 0.54，跌破自己的 SDE base 0.68** —— 是真正的负优化，不是停滞。
+> - **(b) VideoAlign MQ**：RVM 0.94、DiffusionNFT ≈0.93、**RAM 从 iter 95 的峰值 ≈0.75 一路塌回 0.28**（恰好落在 base w/ CFG 线上）。
+> - **(c) HPSv3**：RVM **7.04** > DiffusionNFT 6.31 > **RAM 4.45**（同样是从 ≈5.6 的峰值塌下来的）。
+> - **(d) VBench Dynamic Degree**：🔴 **三个 velocity 方法在前 ~100 个 iteration 全部跌破 base**，RVM 一度从 0.44 掉到 **0.17**（全图最低点），之后才爬升到 0.64；RAM 0.55、DiffusionNFT 0.52。
+>
+> 📌 **这张图补上了两个正文没给的信息**：
+>
+> **① 每张图都画了一条 `Wan2.1-1.3B (SDE)` 基准线，而 SDE base 本身就显著弱于 ODE base**（TA 0.68 vs 1.15；MQ −0.27 vs −0.18；DD 0.41 vs 0.44）。**FlowGRPO 必须用 SDE 采样** —— 所以它在主表上的反常表现，有相当一部分来自起点就更低，而不全是方法本身。这半个解释正文里没有。
+>
+> **② RAM 在训练后期明显在崩**（MQ 和 HPSv3 两条曲线都是先升后塌），而 **Table 1 报的正是它的终点值**。论文对此零讨论。
+>
+> ⚠️ **但这张图与 Table 1 不在同一个数值体系**：TA 终点 3.50 vs 表里 5.12、MQ 0.94 vs 1.86、HPSv3 7.04 vs 10.90、DD 0.64 vs 75.00。**而且排序还翻了** —— Fig 8(d) 是 RAM 0.55 > DiffusionNFT 0.52，Table 1 却是 DiffusionNFT 63.89 > RAM 61.11。论文从未说明 Fig 8 用的是哪个 prompt 集、什么协议。
+>
+> ⚠️ 正文对这张图的概括是 *"The velocity-matching objectives improve every component throughout training"* —— **(d) 的前 100 步和 (b)(c) 里 RAM 的后半段都不支持这句话。**
+
+---
+
 ## 7. 争议与权衡
 
-**① DT reward 和 VBench Dynamic Degree 用的是同一个东西。** 这是我认为最需要打问号的地方。DT reward 明说 "built on RAFT optical flow";而 VBench 的 Dynamic Degree 维度**本身就是用 RAFT 光流幅度算的**。论文在 §4.1 声称 "we separate the rewards used for training from the metrics used for evaluation, allowing us to assess whether improvements generalize beyond the optimized reward signals" —— **但对 DT 这一项,这条分离并不成立**。Fig 5 里 Dynamic Degree 从 5.56 跳到 75.00,很难区分其中多少是"视频真的动起来了",多少是"直接优化了评测指标本身"。Fig 3 的定性图支持前者,但这是主观证据。论文完全没有讨论这个同源问题。
+**① 训练 reward 与评测指标大面积同源,而论文声称它们是分离的。** 论文 §4.1 写 *"we separate the rewards used for training from the metrics used for evaluation, allowing us to assess whether improvements generalize beyond the optimized reward signals"*。**逐列核对下来,这条基本不成立**:
+
+| 表 | 报告的指标 | 是不是训练 reward |
+|---|---|---|
+| Table 1 / 2 | VideoAlign **TA** | 🔴 **是**(权重 1.5) |
+| | VideoAlign **MQ** | 🔴 **是**(权重 1.0) |
+| | **HPSv3** | 🔴 **是**(general 0.1 + percentile 0.1) |
+| | VBench **Dyn. Degree** | 🔴 与 DT reward **同用 RAFT 光流** |
+| | VideoAlign **VQ** | ✅ **否 —— 这是四个 reward 列里唯一真正 held-out 的** |
+| Table 3 / 6 | OCR / PickScore / ClipScore / HPSv2.1 | 🔴 **四项全是训练 reward**(Table 3 caption 自陈) |
+| | Aesthetic / ImageReward | ✅ held-out(⚠️ 而 RVM 在 Table 6 的 Aesthetic 上是全表最低) |
+
+📌 **有利于 RVM 的一面要说出来**:**VQ 是唯一真正 held-out 的 reward 列,而 RVM 恰好在这一列赢得最漂亮**(5.47 vs base w/CFG 4.08,也高于 DiffusionNFT 5.04 / RAM 4.23)。这是论文最该强调却没强调的证据。
+
+🔴 **不利的一面则比"多一个附属列"严重**:Table 1/2 的 caption 自己写了 Dyn. Degree *"is one of the seven quality dimensions **already averaged into Quality**"*。所以 DT reward → Dyn. Degree 75.00 → 抬高 Quality 86.09 → 按 0.8 权重抬高 Overall 84.13 —— **同源效应是一路传导到头条指标的,不是只影响一个旁支列。** Fig 5 里 Dynamic Degree 从 5.56 跳到 75.00,很难区分多少是"视频真的动起来",多少是"直接优化了评测器"。Fig 3 的定性图支持前者,但那是主观证据。
+
+⚠️ **还有一层**:**Dynamic Degree 本身无法区分"主体在动"和"画面在烂"** —— RAFT 对模糊/撕裂的帧同样会读出大光流。论文没有讨论这一点。
+
+⚠️ **Table 3 的 held-out 说法自相矛盾**:Table 3 caption 说 *"The first four rewards, i.e. OCR, PickScore, ClipScore, HPSv2.1, **are used in training**"*,而 App C.2 的 Evaluation 段却把同样这三个叫 *"the **held-out** preference metrics PickScore, ClipScore, HPSv2.1"*。
 
 **② VBench Overall 的聚合权重决定了排名。** T2V 用 `0.8·Quality + 0.2·Semantic`,而 RVM 恰好是 Quality 最高(86.09)、Semantic 偏低(76.28,输给 DiffusionNFT 的 77.28)。换成 I2V 那种**算术平均**,RVM 立刻从第一掉到第二(86.27 < RAM 86.61)。**同一批方法在两种聚合下排名就变了**,说明"最优"这个结论比论文呈现的脆弱。
 
-**③ 逐维度看有真实退化(Table 7)。** RVM 的 temporal flickering **97.25 是全表最低**(base w/o CFG 都有 98.95);appearance style 19.14 也是最低(base 21.05);color 75.94 远低于 base w/ CFG 的 91.40。**运动和画质的提升是有代价的**,而这些代价被 Quality 的平均和 0.8 权重盖住了。
+**③ 逐维度看有真实退化(Table 7)。** RVM 的 temporal flickering **97.25 是全表最低**(base w/o CFG 都有 98.95);appearance style 19.14 是**倒数第二**(⚠️ 最低的是 DiffusionNFT 的 19.10,base 21.05);color 75.94 远低于 base w/ CFG 的 91.40。**运动和画质的提升是有代价的**,而这些代价被 Quality 的平均和 0.8 权重盖住了。
+
+**③b Table 8(VBench-I2V 全 10 维)的结论比 §6.2 更不利。** RVM 只拿下 dynamic degree 与 Quality 聚合两项,**RAM 拿下 10 维中的 7 维外加 I2V 聚合与 Overall**。
+
+![Table 8: VBench-I2V 全维度](./figures/tab8_i2v.png)
 
 **④ 真正的对照应该是 base w/ CFG,不是 base w/o CFG。** 论文行文一直在跟 CFG-free base(76.02)比,显得提升有 8 分。但 base w/ CFG 是 83.10,**RVM 只高 1.03**。当然 RVM 推理不需要 CFG(省一半 NFE),这是实打实的好处,但**"+1.03 分且省一半推理算力"是比"+8.11 分"诚实得多的表述**,论文没有这么写。
 
@@ -396,7 +454,24 @@ $$
 
 **⑨ 正面:统一定理是真有用的。** Table 4 那个 `(anchor, scale, reach)` 三元组把三个看起来完全不同(控制论 / 对比学习 / 直接回归)的方法放进同一个坐标系,而且**读出了原论文里看不到的性质**(DiffusionNFT 的 reach 会过冲)。这比单纯说"我们更好"有价值。
 
-**⑩ 正面:结论对工程有直接指导。** "loss 形式不重要,reward 设计才重要"——三个 velocity 方法只差几分,而换 reward 组合能差 13 分(71.04 → 84.13)。**如果这个结论成立,那么投入应该从设计新 loss 转向设计 reward 和防 hacking**,DT2 那套"减中位数 + 双边窗口"就是这个方向的具体样板。
+**⑩ 核心结论"loss 形式不重要"需要分层,论文自己的数据两边都有。**
+
+**支持的一侧**:三个 velocity 方法的聚合分确实接近(T2V Overall 82.95 / 81.95 / 84.13;I2V 86.16 / 86.61 / 86.27,后者 RVM 还不是第一),而换 reward 组合能差 13 分(71.04 → 84.13)。论文原话是 *"the particular loss variant matters less than reward and anchor design"*。
+
+🔴 **反驳的一侧 —— 而且是论文自己的 Table 2**:那张表的 caption 明写 **"DiffusionNFT and RAM are trained with the same reward mixture as ours"**(⚠️ 注意 **Table 1 没有这句声明**,T2V 那边的 reward 一致性未知)。在 reward 完全相同的前提下:
+
+| | Dyn. Degree | vs base 64.63 |
+|---|---|---|
+| SkyReels-I2V base | 64.63 | — |
+| DiffusionNFT | **47.56** | **−17.1** |
+| RAM | **51.22** | **−13.4** |
+| **RVM** | **72.36** | **+7.7** |
+
+**同一套 reward(含权重 0.7 的 DT),跨度 24.8 分,而且两个 baseline 把运动训到了 base 以下。** 论文在附录里自己写了半句:*"Ours (RVM) is the **only fine-tuned method that raises dynamic degree above the base**"* —— **它把"聚合分接近"和"只有我把运动拉上去了"放在同一句话里,却没意识到后者正是对前者的反例。**
+
+📌 **准确的表述应该是**:**在聚合指标上 loss 形式确实不重要;但在 reward 专门要推的那根轴上,loss 形式决定了这个 reward 兑不兑现。** 对工程的含义也随之变化 —— 不是"随便挑个 velocity loss 然后专心调 reward",而是"**先确认你挑的 loss 真的能把你设计的 reward 兑现出来**",否则 reward 设计得再好也会被 loss 吃掉。
+
+⚠️ **还有一个未控制的变量让这个对比更不干净**:三个方法的**有效 reward 尺度差了 10 倍**(交叉 App B.1 与 C.3 可得)—— RVM 用 `0.1 × r_grpo`,RAM 用 `1.0 × r_grpo`,DiffusionNFT 等效 `0.2 × r_grpo`。而且 **RAM 和 DiffusionNFT 都是本文的重实现而非原配方**(App B.1 自陈 RAM 原版 *"scales this residual by the raw scalar reward, with no group baseline"*,本文给它加了组标准化)。
 
 ---
 
@@ -433,7 +508,7 @@ RAM 是**梯度相等**,DiffusionNFT 是**loss 相差一个与 θ 无关的常�
 
 A: **它往的是"下一个采样点",而下一个采样点不保证比当前点更接近 `x_0`。**
 
-trajectory-based 方法提升的是**这一步转移的似然** `log π_θ(x_{t−Δt} | x_t)`。也就是说,它把"从 `x_t` 走到 `x_{t−Δt}` 这个动作"当成要强化的行为。但 `x_{t−Δt}` 是 **SDE 采样器随机抽出来的中间态**——它带着这一步注入的随机噪声,在高维空间里完全可能偏到一边去。Fig 2(a) 就是画这个:折线绕了一圈,`x_{t−Δt}` 反而比 `x_t` 离 `x_0` 更远。
+trajectory-based 方法提升的是**这一步转移的似然** `log π_θ(x_{t−Δt} | x_t)`。也就是说,它把"从 `x_t` 走到 `x_{t−Δt}` 这个动作"当成要强化的行为。但 `x_{t−Δt}` 是 **SDE 采样器随机抽出来的中间态**——它带着这一步注入的随机噪声,在高维空间里完全可能偏到一边去。Fig 2(a) 就是画这个:折线明显偏离直指 `x_0` 的方向(⚠️ 但注意图上 `x_{t−Δt}` 并**不**比 `x_t` 离 `x_0` 更远,论文只主张"不保证更近"),`x_{t−Δt}` 反而比 `x_t` 离 `x_0` 更远。
 
 而 RVM 的目标 `v_tgt = ε − x_0` 是**由端点定义的**:给定最终样本 `x_0` 和这次加的噪声 `ε`,方向就唯一确定,和用什么采样器、这次采样恰好走到哪里都无关。
 
@@ -537,16 +612,63 @@ A: **两者都在做"别硬套 LLM 的 policy gradient",但切入点相反。**
 
 **Q: 想在自己的项目里用,最该抄哪部分?**
 
-A: **抄 reward 设计,不是抄 loss。**
+A: **两个都要看,但先确认 loss 能兑现你的 reward。**
 
-这是论文自己的结论,也是实验支持最强的一条:三个 velocity-based loss 差几分(81.95–84.13),而换 reward 组合差 13 分(71.04 → 84.13)。
+⚠️ **我在上一版笔记里把这条写成了"抄 reward 别抄 loss",那个说法太强了。** 见 [§7⑩](#7-争议与权衡):同一套 reward 下三个 velocity loss 的 dynamic degree 是 47.56 / 51.22 / 72.36,两个 baseline 甚至把运动训到 base 以下。**聚合分上 loss 不重要,但在你真正想推的那根轴上,loss 形式决定成败。**
+
+在这个前提下,reward 侧的经验仍然是最值钱的部分:
+
+这是论文自己的结论,在**聚合指标**上实验支持也最强:三个 velocity-based loss 差几分(81.95–84.13),而换 reward 组合差 13 分(71.04 → 84.13)。⚠️ **但别忘了 Table 2 的反例**(见 §7⑩):同一套 reward 下三个 loss 的 dynamic degree 是 47.56 / 51.22 / 72.36。
 
 具体建议按优先级:
 
 1. **先确认你的 reward 会不会奖励"退化解"。** 视频上最典型的就是静止——用 VideoAlign/HPSv3 单独训,Dynamic Degree 会掉到 2.78,**比不训还差一个数量级**。这个坑不做 ablation 是发现不了的。
 2. **加显式的、和退化方向正交的 reward。** DT 就是干这个的。注意它的两个设计:**top-5% 而非全图均值**(区分"多快"和"多大面积"),**双边窗口而非单调**(防过度)。
 3. **防 hack 要用"差分"而不是"绝对值"。** DT2 减中位数抵消全画幅运动,这个技巧可以直接迁移——只要你的 reward 有一个可以被全局平移/缩放刷分的漏洞。
-4. **loss 就用最简单的那个。** `r·‖v_θ − v‖²`,组内标准化 reward,`β = 0`。有需要再加 anchor。
+4. **loss 用最简单的那个,但要验证它兑现了你的 reward。** `r·‖v_θ − v‖²`,组内标准化 reward,`β = 0`。⚠️ **上线前务必单独看一眼"你最想推的那根轴"有没有真的动** —— Table 2 里 DiffusionNFT 和 RAM 拿着同一套含 DT 的 reward,却把 dynamic degree 训到了 base 以下。
 5. **采样用确定性 ODE、不开 CFG。** 这是成本大头:16 步 ODE vs 50 步 SDE + CFG 是 16 NFE vs 100 NFE。
 
 ⚠️ 但要注意 §7 的第 ① 条:**如果你的评测指标和训练 reward 同源(比如都用 RAFT 光流),那涨分不能当作能力提升的证据。** 至少要留一个完全独立的评测轴。
+
+
+---
+
+## 9. 在仓库图谱里的位置
+
+📌 **这篇是仓库「扩散 RL / OPD」那一簇的理论枢纽 —— 它是唯一一篇给出统一定理的。** Theorem 3.1 的共享回归形式
+
+$$
+\mathbb{E}\left[\frac{c(r^i)}{2}\left\lVert v_\theta - v_{\mathrm{anc}} - A(r^i)\,(v^i - v_{\mathrm{anc}})\right\rVert_2^2\right]
+$$
+
+用 **(anchor 锚点, scale 权重 `c`, reach 走多远 `A`)** 三元组容纳了 RAM 与 DiffusionNFT。
+
+| 簇 | 笔记 | 与本篇的关系 |
+|---|---|---|
+| **被统一的对象** | DiffusionNFT（[image_generation/diffusion_nft](../../image_generation/diffusion_nft/analysis.md)） | **Theorem 3.1 的两个特例之一**，`L_nft = L_rvm + const`。Table 1/2 里的 DiffusionNFT 是本文重实现（`β̄=0.1`、reward 映射都是本文选的） |
+| | RAM（arXiv:2605.10759，仓库无笔记） | 另一个特例，`∇L_ram = ∇L_rvm`（只有梯度相等，loss 不等，因为 RAM 的目标被 `sg` detach 了） |
+| **同为扩散 RL** | [flow_grpo](../../image_generation/flow_grpo/analysis.md) | Table 1/2 的 trajectory-based baseline，两个视频设置上**都把 base 训坏了** |
+| | [diffusion_dpo](../../image_generation/diffusion_dpo/analysis.md) | ⚠️ 本文**未引用** DPO / Diffusion-DPO |
+| **OPD 那一支** | [flow_opd](../../image_generation/flow_opd/analysis.md)、[danceopd](../../image_generation/danceopd/analysis.md)、[diffusion_opsd](../../image_generation/diffusion_opsd/analysis.md)、[d_opsd](../../image_generation/d_opsd/analysis.md)、[self_opd](../../image_generation/self_opd/analysis.md) | ⚠️ **全部未引用** —— 本文的 related work 只覆盖 RL 侧 |
+| | [opsd_v](../opsd_v/analysis.md) | 视频侧的 OPD，同样未引用 |
+| | [sensenova_u15](../../multimodal/sensenova_u15/analysis.md) | 反过来也一样：那篇点名了四篇扩散 OPD，**却没引 RVM 或 DiffusionNFT** |
+| **LLM 侧同构** | [opdvr](../../llm/opdvr/analysis.md)、[opsa](../../llm/opsa/analysis.md) | 见下 |
+| **少步蒸馏** | [tdm](../../inference_acceleration/tdm/analysis.md)、[tdm_r1](../../inference_acceleration/tdm_r1/analysis.md)、[pdd](../pdd/analysis.md) | §6.7 的少步鲁棒性是意外收获，不是本文目标 |
+
+### 一个可以把 OPD 也装进这个模板的观察（我的外推，论文没这么写）
+
+RVM 的模板只覆盖 RL 目标。但**把 OPD 的 loss 套进去，它落在一个很干净的退化点上**。以 [SenseNova-U1.5](../../multimodal/sensenova_u15/analysis.md) 的蒸馏目标为例：
+
+$$
+\mathcal{L}_{\mathrm{OPD}} = \mathbb{E}\left[\big\lVert v_\theta(\mathrm{sg}(\hat{x}_{\theta,t}),\, t,\, c) - v_m(\mathrm{sg}(\hat{x}_{\theta,t}),\, t,\, c)\big\rVert_2^2\right]
+Vert_2^2
+ight]
+$$
+
+对应 **`v_anc = 教师速度场 v_m`、`A(r) = 0`、`c = 2`** —— 也就是 **reach 恒为零：完全回归到锚点，不朝 flow-matching 目标 `v^i` 走任何一步**。而 RL 类方法把锚点当参考、按 reward 决定朝 `v^i` 走多远（RAM 的 reach 是 `r/(r+1)`，DiffusionNFT 是 `(2r_nft−1)/β̄`）。
+
+📌 **如果这个对应成立，它给"为什么 OPD 的天花板是 teacher"提供了一个结构性解释**：reach = 0 意味着学生没有任何超出锚点的机制。这与 [OPDVR](../../llm/opdvr/analysis.md) 笔记里从 ReLU 门控推出的「单向棘轮、teacher 是硬上界」是同一件事的两种说法 —— 那边是离散 token 域，这边是连续速度场。
+
+⚠️ **这是我的外推，两篇论文都没有写过**：RVM 的定理只声称覆盖 RAM 和 DiffusionNFT 两个 RL 目标，全文不提 OPD；SenseNova 那边也不引 RVM。**要当结论用需要自己验证**，最直接的检验是：把 OPD 的 `A(r)` 从 0 调到一个小的正数（即允许学生朝 flow-matching 目标多走一点），看它能不能突破 teacher。
+
+⚠️ **另外记一条并发工作**：RVM 在 App A 专门区分了 **Xu et al. 2026（arXiv:2608.14430，*Designing RL for diffusion models: A unified path-space view*）** —— *"Their unification operates on trajectory-space likelihood ratios, whereas RVM unifies velocity-based methods directly in the model's native velocity representation."* **这是 RVM 新颖性的直接竞争者**，仓库里还没有笔记。同类还有 Reward Score Matching（Lee et al. 2026b，arXiv:2604.17415，统一 trajectory-based 方法）。
