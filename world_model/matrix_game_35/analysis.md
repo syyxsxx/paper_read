@@ -145,9 +145,33 @@ $$
 
 此时 patch memory 与 context frame **都从因果可见的生成历史里在线检索**。
 
-🔴 **而这里论文识别出了一个很实在的问题，值得单独记**：
+🔴 **而这里论文识别出了一个很实在的问题 —— 但它的公式和散文自相矛盾，需要拆开看。**
 
-> *"the student and scorers maintain **different memory states**. The student updates online memory from generated chunks, while **feeding the same potentially drifted history to the bidirectional scorers would compromise the supervision**. We therefore **share only stable external conditions** — the initial memory, anchor frame, text prompt, and camera trajectory — while **allowing the student to update its memory and keeping scorer memory fixed**."*
+**公式说的**：Eq (8) 里 `m̂_i^θ`、`r̂_i^θ` 都带 `θ` 上标，是**学生自己在线检索**的；Eq (9) 把 `q_θ` 与 `p_φ` 都条件在**同一个** `Ĥ_i^θ` 上，正文原话是 *"matches the student distribution … to the bidirectional teacher distribution **under this shared condition**"*。**按公式，teacher 看到的就是学生那份在线记忆。**
+
+**散文说的**（紧接着的下一段）：
+
+> *"the student and scorers maintain **different memory states**. The student updates online memory from generated chunks, while **feeding the same potentially drifted history to the bidirectional scorers would compromise the supervision**. We therefore **share only stable external conditions — the initial memory, anchor frame, text prompt, and camera trajectory** — while allowing the student to update its memory and **keeping scorer memory fixed**."*
+
+🔴 **两者不可能同时成立**：Eq (9) 说两边共享 `Ĥ_i^θ`（含学生在线记忆），散文说共享的只有初始记忆 / anchor / 文本 / 相机轨迹这四样、scorer 的记忆是冻住的。**Eq (9) 是理想化的目标，散文描述的是真正实现的东西 —— 而论文从头到尾没有把实际优化的那个目标写成公式。**
+
+### 那么 teacher 的 cache 到底怎么来？
+
+按散文的读法：**就是 "the initial memory"，rollout 起点的那一份，全程不更新。**
+
+⚠️ **但这份"初始记忆"本身从哪来，论文没有说。** 只能从三处间接证据反推：① 训练样本是「1 个干净 anchor latent + 最多 5 个按轨迹覆盖度挑的历史 context latent」，都来自 GT clip、带标注好的 metric depth 与 pose；② DMD 里 *"the first anchor remains clean"*；③ 附录 C 讲 occupancy map 时明写 *"**Section 0 initializes the occupancy map from the anchor**"*。**最可能是从那个干净 anchor（+ GT context）建出来的一份真实数据记忆 —— 但这是反推，不是论文陈述。**
+
+### 🔴 这带来一个论文没讨论的技术后果
+
+DMD 的梯度本质是两个 score 之差 `∇L ∝ s_fake − s_real`。**要让这个差成为 `∇KL` 的有效估计，两个 scorer 必须在与学生采样时相同的条件下求值。**
+
+而按散文：**学生在 `Ĥ_i^θ`（新记忆）下采样，scorer 在旧记忆下打分** → 这个差估计的是"旧记忆条件下的 KL"，却被用在"新记忆条件下采出的样本"上。**梯度不再是学生真实条件分布与 teacher 之间 KL 的无偏估计。**
+
+⚠️ **而且 "scorers" 是复数**（§4.1 分别提了 `real scorer`，guidance scale 3；和 `fake scorer`，lr 4e−7）。**fake scorer / critic 的职责恰恰是追踪学生的分布** —— 它看到的条件与学生不同，追踪的就不是学生的实际分布。
+
+论文对此只有一句辩护：*"This provides reliable scores **without forcing incompatible internal trajectories to match**."* —— **等于承认有偏，但认为比"强行让两条不兼容的内部轨迹对齐"的问题小。没有任何实验支持这个取舍。**
+
+📌 **不过 condition curriculum 部分绕开了它**：DMD 开始时**两个记忆条件都是关掉的**（*"We begin DMD with both memory conditions disabled"*），之后才逐步提高启用概率。**所以训练早期学生与 scorer 平凡地共享条件，矛盾只在后期显现** —— 这可能正是这个偏差可以被忍受的原因。
 
 **另配一个 condition curriculum**：先蒸 CFG 与相机控制、**不开在线记忆**，再逐步把 patch memory 和 context frame 加进来。并沿用 **HiAR** 的做法 —— 每个去噪子步里把自回归前缀与 chunk 局部 context **保持在下一个噪声水平**、只留 anchor 干净，*"This represents imperfect generated history with appropriate uncertainty, reducing long-horizon drift"*。
 
@@ -180,7 +204,14 @@ $$
 
 📌 **同一个诊断，两种解法，而且互不引用。** 共同的原则是**把学生与 teacher/scorer 的记忆状态解耦** —— 这与 OPSD-V 总结的那条原则是一致的：**学生决定在哪里施加监督，teacher 决定往哪个方向走。**
 
-⚠️ **但两者的代价不同**：OPSD-V 的 teacher 活在"历史从未退化"的世界里（所以它必须保留最近一个学生 chunk 来防止方向不可达），本篇则是把 scorer 的记忆**冻在初始状态**（所以 scorer 看到的上下文随 rollout 推进会越来越旧）。**哪种更好没人比过。**
+**两者的代价不同**，而且差别比"都是解耦"更具体：
+
+| | teacher/scorer 的 cache 内容 | 随 rollout 前进吗 | 代价 |
+|---|---|---|---|
+| **OPSD-V** | **真实视频 chunk** 逐个填充，**只保留最近一个学生 chunk** | ✅ **随 `i` 前进**，始终与学生对齐在同一时刻 | **必须有成对的真实长视频**（自建 3,800 条 × 1 分钟）；且 teacher 活在"历史从未退化"的世界里，所以必须留一个学生 chunk 防止方向不可达 |
+| **Matrix-Game 3.5** | **初始记忆**（按散文口径），冻住 | ❌ **完全不前进** | 不需要额外真实视频，**但 scorer 的上下文随 rollout 推进越来越旧**；且带来上面那个条件失配的梯度偏差 |
+
+⚠️ **"冻在初始状态"这一条只在散文口径下成立，与 Eq (9) 冲突**（见上），所以严格说 **Matrix-Game 3.5 这一行是有歧义的**。**哪种更好没人比过，两篇也互不引用。**
 
 ---
 
@@ -295,6 +326,7 @@ $$
 
 ### 7.4 其它
 - ⚠️ **Table 1 的 caption 写 "our 1-min benchmark"，但评测协议说的是 "Following the one-minute world-model benchmark introduced by SANA-WM"** —— benchmark 是别人的（这点是加分项，不是自建榜），caption 的措辞不准确。
+- 🔴 **DMD 的目标函数：公式与散文互相矛盾，而实际优化的目标从未被写出来**。Eq (9) 把 `q_θ` 与 `p_φ` 都条件在同一个 `Ĥ_i^θ`（含学生在线记忆）上、正文还强调 *"under this **shared** condition"*；下一段却说共享的只有「初始记忆 / anchor / 文本 / 相机轨迹」四样、**scorer 的记忆是冻住的**。详见 [§4.2](#42-stage-2self-rollout-dmd)。**这不是措辞问题 —— 两种读法对应的梯度不是同一个东西**（后者存在条件失配，`s_fake − s_real` 不再是学生真实条件分布下 `∇KL` 的无偏估计）。
 - 🔴 **几处图与 caption 直接冲突**（均为渲染放大后核对）：
   - **Figure 10 的列头图上写的是 `0s / 15s / 30s / 45s / 60s`，而 caption 写 "Columns show frames at 0, 4, 8, 12, and 16 seconds"**；
   - **同一张图第 2 行画的是一只金毛犬，而 caption 和正文都写 "a cat"**；
