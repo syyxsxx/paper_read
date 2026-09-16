@@ -11,12 +11,16 @@
 
 **把"历史帧"这个记忆单元拆到 patch 级：用深度+位姿把历史 latent patch 反投影到 3D，再从目标相机视角做 z-buffer 查询，只把"当前视角真正看得见"的那些 patch 拼成一张对齐的记忆画布喂回去 —— 而相机几何本身则被折进 attention 的 softmax 里，零新增参数。**
 
-两个命名贡献：
+两个机制：
 
 | | 做什么 | 关键性质 |
 |---|---|---|
 | **Patch Memory** | 历史 latent patch → 反投影到世界坐标 → 投影到目标相机 → z-buffer 去遮挡 → 散射进对齐的记忆画布 | **粒度介于"显式 3D 重建"与"整帧隐式记忆"之间**；**空洞直接从 token 序列里丢掉**（不占位），所以记忆通路不会让序列长度翻倍 |
 | **Warped PRoPE** | 在原生时空 RoPE 之上，把世界→图像投影矩阵 `P` 平铺到**所有** head 通道；q 乘 `P_i^T`、k/v 乘 `P_j^{-1}` | **单次 softmax 同时携带 Δt = i−j 与相对位姿 `M = P_i P_j^{-1}`**，**零新增参数**、不改架构 |
+
+⚠️ **归属要先说清楚，否则容易被标题误导**：**标题挂着 "with Patch Memory"，但 Patch Memory 这个机制论文自己归给了 [MosaicMem](https://arxiv.org/abs/2603.17117)**。§1 的原话是 *"a unified parameter-free geometry-aware memory framework that **integrates Patch Memory [5]** and Warped PRoPE, **our video adaptation of** PRoPE [6]"*，§2.2.1 也写 *"**we follow MosaicMem [5]** and store localized image patches as the fundamental unit of memory"*。
+
+📌 **所以它自认的贡献是「整合」与「PRoPE 的视频改造」，不是 patch 级记忆本身。** 这一点论文写得诚实，是标题的措辞造成了误导。**本文真正的增量**是：把 patch memory 搬到**因果自回归**设定、加**动静分离的运动过滤**、以及**用 Warped PRoPE 的坐标体系去给记忆 token 编址**。
 
 📌 **对本仓库而言，这篇最有价值的不是 Patch Memory，而是它的蒸馏那一节** —— 它在我那篇[五篇横向对照](../../video_generation/dmd_few_step_ar/analysis.md)争得最凶的那一格上，投了关键的第三票（见 [§4](#4-两阶段蒸馏--本篇对本仓库最重要的一节)）。
 
@@ -47,6 +51,10 @@ $$
 📌 **这与仓库里 [SolarWM](../solarwm/analysis.md) 的 fused-PRoPE 是同一个机制** —— 那边的描述是"骨干先施加原生 video RoPE，相机位姿和内参随后决定投影旋转、作用在 Q/K/V 上，接着单次 self-attention，之后在原生输出投影之前施加匹配的输出变换"，**且两篇都明确沿用 [MosaicMem](https://arxiv.org/abs/2603.17117)**。**两个独立团队收敛到同一套相机注入方案，这条基本可以当定论。**
 
 ⚠️ **区别在于本篇多做了一步**：它明确指出原生 PRoPE **切分 head 维度**的做法会挤掉时间轴，改成**平铺到所有通道**。SolarWM 没有讨论这个取舍。
+
+📌 **一个数值稳定性细节**（值得抄）：*"Matrix-Game 3.5 **recenters all camera poses with respect to the first target frame of the current generation window**"*，并对 metric 尺度的平移分量做**保方向的对数压缩**（模长取 log **再除以 4**，方向不变）。**这正面回应了 [ABot-World-0](../abot_world_0/analysis.md) 拒绝相机位姿的那条理由（长 rollout 累积位姿会漂出训练分布）—— 每个窗口重新对齐 + 相对投影 `M = P_i P_j^{-1}`，两层都不累积全局漂移。**
+
+⚠️ **"parameter-free" 这个词的适用范围要划清**：PRoPE overlay 那一路确实零新增参数（*"with no learnable parameters"*），**但 Reference Token 分支明确加了可学参数**（*"Each reference patch token receives **additive reference-index, type, and local spatial embeddings**"*），而且整个 DiT 是全参微调。**"parameter-free" 只覆盖相机/记忆的编址方式，不覆盖整个框架。**
 
 ---
 
@@ -260,18 +268,50 @@ $$
 
 **全文唯一的结构化对照是 Table 1 的跨方法比较，而它把架构、数据、蒸馏、推理优化全混在一起。**
 
-### 7.2 其它
+### 7.2 🔴 "real-time 20 FPS" 与 Table 1 的吞吐对不上
 
-- ⚠️ **"20 FPS" 与 Table 1 的效率数字不是同一套硬件**：20 FPS 是**单张 H200** + INT8 量化 + **75% 剪枝的 MG-LightVAE**；Table 1 的 Mem/Tput 是 **8 张 H100**。**而那个 INT8 + 剪枝 VAE 配置的画质从未被评测** —— Table 1 里的 MG3.5 行是不是这个配置，论文没说。📌 **这与 [ABot-World-0](../abot_world_0/analysis.md) 是同一个模式**（那边头条的 16 FPS 来自画质从未评测的 MXFP4 配置）。
+**Table 1 里 MG3.5 的 Tput = 10.9 videos/hour**，而 benchmark 是 **1 分钟**视频。**两种读法都不是实时**：
+
+| 读法 | 换算 | 相对实时 |
+|---|---|---|
+| 10.9 是**单实例**吞吐 | 3600/10.9 ≈ **330 s** 生成 60 s 视频 | **慢 5.5×** |
+| 10.9 是 8 卡节点的**总**吞吐（`#G=1`，即 8 个实例并行） | 每实例 1.36 videos/h ≈ **2647 s** | **慢 44×** |
+
+⚠️ **论文没说明 Tput 的口径**（caption 只写 "videos/hour on 8 H100s"，另有一列 `#G` 标注模型自身用几张卡）。**但无论哪种读法，Table 1 的数字都不支持"实时"。**
+
+**而 "20 FPS" 只在 §4.4 的一句话里出现**，换了硬件（**单张 H200**）、换了推理栈（**INT8 量化 + PyTorch 编译 + 75% 剪枝的 MG-LightVAE + GPU 化的记忆检索**），措辞是 **"up to 20 FPS"**，**没有任何表格或图支撑，没给分辨率，没给延迟拆解，那套配置的画质也从未被评测。**
+
+📌 **这与 [ABot-World-0](../abot_world_0/analysis.md) 是同一个模式** —— 那边头条的 16 FPS 同样来自画质从未评测的 MXFP4 配置，而论文明说 FP8 才是"质量导向的默认工作点"。
+
+⚠️ **还有一项延迟从未被计入**：patch memory 在推理时需要对**生成帧**估 metric depth 与 pose（附录 C 明写 *"the system estimates metric depth and camera pose for … the generated frames"*），**这个外部估计器的开销不出现在任何延迟核算里**。
+
+⚠️ **另一个信号**：Table 1 里 MG3.5 的 peak memory 是 **77.0 GB**，而 H100 只有 80 GB（**用到 96%**），且这一列它**排第 4**（SANA-WM 51.1 / Infinite-World 53.5 / SANA-WM+refiner 74.7 都更省）。**这强烈暗示显存随 rollout 增长**，也很可能是 §4.4 要换到 H200（141 GB）的原因 —— **论文对此只字未提，也从未讨论 patch 存储池随 rollout 增长的界。**
+
+### 7.3 🔴 两个未披露项，都直接关系到它赢得最漂亮的那一列
+
+**① 位姿指标用什么 estimator 评的，全文没说。** 训练用的相机/深度标注**全部来自 VGGT-Omega + Depth Anything 3** 这条外部流水线；而 R/T/CMC 需要**从生成视频里反estimate相机轨迹**。⚠️ **如果评测端用的也是 VGGT-Omega，那就是"用 A 标注训练、再用 A 打分"** —— 而位姿精度恰恰是它唯一赢得干净的那组指标（4.50→1.63、8.34→2.70）。**论文没有给出评测用的 estimator，这条无法排除。**
+
+**② 附录 C 的相机防碰撞机制参与了评测，而且会主动改写轨迹。** 原文：*"we introduce a camera collision-avoidance mechanism based on a progressive 3D occupancy map **in our patch-memory long-video evaluation**"*，它 *"adjusts only the camera position"*。⚠️ **而 R/T/CMC 正是比对"生成轨迹"与"目标轨迹"的误差** —— **修正后的轨迹是作为新的 target 来比对，还是仍用原始 target？论文没说。** 如果是前者，位姿指标就存在结构性优势；而 **baseline 有没有等价机制，论文也没说。**
+
+### 7.4 其它
 - ⚠️ **Table 1 的 caption 写 "our 1-min benchmark"，但评测协议说的是 "Following the one-minute world-model benchmark introduced by SANA-WM"** —— benchmark 是别人的（这点是加分项，不是自建榜），caption 的措辞不准确。
-- ⚠️ **没有作者名单、没有 arXiv 号、没有代码/权重链接**（只有项目主页）。**没有致谢、没有贡献者列表。**
+- 🔴 **几处图与 caption 直接冲突**（均为渲染放大后核对）：
+  - **Figure 10 的列头图上写的是 `0s / 15s / 30s / 45s / 60s`，而 caption 写 "Columns show frames at 0, 4, 8, 12, and 16 seconds"**；
+  - **同一张图第 2 行画的是一只金毛犬，而 caption 和正文都写 "a cat"**；
+  - **Figure 8 第 3 行的红框画在 45 s 那一列，而 caption 声称 "Red boxes in the 60-second frames"**。
+- 🔴 **Figure 11（全文唯一一个"消融味"的图）没做到它自称的控制变量**：正文说 *"keep the initial state, camera trajectory, text prompt, and random seed fixed, and remove only the reference tokens"*、*"leaving the background evolution and camera motion unchanged"*，**但两列的背景与视角明显不同**（第 1 行 With 有一架直升机、Without 没有；第 3 行前方车辆与路侧完全不同）。**所以这张图无法支撑 reference token 的因果作用。** 图上还留着 debug 水印（`correct_pool_no_ref`、`478 gnd_truth`）。
+- ⚠️ **Figure 8/9/12 每一帧都画着 WASD + 方向键的 HUD 浮层，而论文正文对键盘动作接口零字说明** —— 全文的动作空间只有相机位姿轨迹 + 文本。§6 还把 "richer embodied action spaces" 列为 future work。**这个 HUD 是怎么回事，论文没解释。**
+- ⚠️ **术语漂移**：正文叫 Patch Memory，Figure 5 里叫 "Mosaic tokens"，§5.2 叫 "Mosaic Memory"。而且 **"Warped PRoPE" 这个命名在 §2.1 方法章节一次都没出现**（只在摘要/§1/§3/§6），即命名贡献从未在方法节被正式定义。
+- ⚠️ **公式参数化不一致**：主体区域辅助损失 Eq (3) 用的是 `ε_θ`（noise prediction），而 §2.3 的 Eq (5)(6) 用的是 flow/velocity `v_θ`，backbone 也是 flow matching；Eq (3) 里分母小量 `ε` 与噪声 `ε` 还撞了符号，`L_full` 从未定义、`λ_sub` 取值没给。
+- ⚠️ **没有作者名单、没有 arXiv 号、没有代码/权重链接**（只有项目主页）。**没有致谢、没有贡献者列表。** 参考文献 55 条，页脚只写 `Technical Report.`。
+- ⚠️ **Matrix-Game 2.0 全文只被提了一次**（[38]，*"OASIS and Matrix-Game 2.0 advanced open-source, real-time autoregressive interaction"*）—— **不是 baseline、不在表里**。而它正是 [ForgeWM](../../video_generation/forgewm/analysis.md) 的主对照。
 - ⚠️ **零种子、零误差棒、零重复实验**。Table 1 全是单点估计，而 revisit PSNR 上 MG3.5 与 LingBot 差 0.03、与其它方法的多处差距也在 0.1 量级。
 - ⚠️ **数据规模一个数字都没有**（小时数 / clip 数 / 三类来源配比全无），而数据基建占了整整一节。
 - ⚠️ **硬件只给了 "32 GPUs"，型号、训练时长、GPU-hours 全无。**
 - ⚠️ **最长量化 rollout 是 1 分钟**（benchmark 本身就是 one-minute），而标题和摘要反复用 "long-horizon"。**这一点比仓库里 [ABot](../abot_world_0/analysis.md)（量化 60 秒 / 宣称 24 小时）和 [SolarWM](../solarwm/analysis.md)（每 10 分钟一帧 / 宣称 1 小时）都克制** —— 📌 **它的宣称与它的量化是对齐的，这是个加分项。**
 - 📌 **Conclusion 之后有一段 "several directions remain open"**，写得具体：① 给动态实体自己的持久状态，让离开视野的主体继续演化；② **让生成器自己 geometry-aware（联合预测自己生成内容的深度与位姿），而不是依赖外部估计器** —— 后者直指 patch memory 当前的软肋（几何来自 VGGT-Omega + Depth Anything 3 这条外部流水线）。
 
-### 7.3 正面
+### 7.5 正面
 
 - 📌 **Patch 级这个粒度的论证是干净的**，而且"空洞直接丢出 token 序列、不占位"这个工程细节直接解决了记忆通路让序列翻倍的问题。
 - 📌 **"patch 按它该出现在哪、而不是它存在哪来编址"** —— 这个位置编码设计（借目标帧的 RoPE 时间戳 + 亚网格精度的分数空间坐标）是全文最见巧思的地方。
@@ -283,7 +323,7 @@ $$
 
 ## 8. 一句话总结
 
-**Matrix-Game 3.5 做的是"把记忆的粒度从帧降到 patch"**：历史 latent patch 用 metric depth + 内参 + 位姿反投影到 3D，目标相机视锥再去查询、z-buffer 去遮挡，只把当前视角真看得见的 patch 散射成一张对齐的记忆画布 —— **空洞直接从 token 序列丢掉不占位（记忆通路不让序列翻倍），而每个 patch 按"它该出现在哪"取目标帧的 RoPE 时间戳 + 亚网格精度的分数坐标来编址，而不是按"它存在哪"**；相机几何则用 **Warped PRoPE**（把投影矩阵平铺到所有 head 通道、乘在原生时空 RoPE 之上，q 乘 `Pᵀ`、k/v 乘 `P⁻¹`）折进单次 softmax，**零新增参数**。蒸馏是两阶段：**teacher-forced 感知流匹配（在冻结 InternVideo2 特征空间里，而非 VAE latent 空间）一步同时学到因果去噪与少步生成**，再做 self-rollout DMD，产出三步因果生成器，单张 H200 最高 20 FPS。**位姿精度赢得干净**（Simple 划分旋转误差 4.50→1.63、Hard 8.34→2.70，T/CMC 全最优），revisit SSIM 两个划分都第一。⚠️ **但 24 页只有 1 张表、"ablat" 出现 0 次 —— 包括标题级贡献 Patch Memory 在内零消融**（而训练里明明有现成的开关）；VBench Overall 两个划分都只排第三、吞吐输给 SANA-WM 2.2×、ΔIQ 还输给自家前作 Matrix-Game 3.0；20 FPS 的 INT8+75% 剪枝 VAE 配置画质从未评测，与 Table 1 的 8×H100 也不是同一套硬件；无作者名单、无 arXiv、无代码、无数据规模、无种子误差棒。
+**Matrix-Game 3.5 做的是"把记忆的粒度从帧降到 patch"**：历史 latent patch 用 metric depth + 内参 + 位姿反投影到 3D，目标相机视锥再去查询、z-buffer 去遮挡，只把当前视角真看得见的 patch 散射成一张对齐的记忆画布 —— **空洞直接从 token 序列丢掉不占位（记忆通路不让序列翻倍），而每个 patch 按"它该出现在哪"取目标帧的 RoPE 时间戳 + 亚网格精度的分数坐标来编址，而不是按"它存在哪"**；相机几何则用 **Warped PRoPE**（把投影矩阵平铺到所有 head 通道、乘在原生时空 RoPE 之上，q 乘 `Pᵀ`、k/v 乘 `P⁻¹`）折进单次 softmax，**零新增参数**。蒸馏是两阶段：**teacher-forced 感知流匹配（在冻结 InternVideo2 特征空间里，而非 VAE latent 空间）一步同时学到因果去噪与少步生成**，再做 self-rollout DMD，产出三步因果生成器，单张 H200 最高 20 FPS。**位姿精度赢得干净**（Simple 划分旋转误差 4.50→1.63、Hard 8.34→2.70，T/CMC 全最优），revisit SSIM 两个划分都第一。⚠️ **但 24 页只有 1 张表、"ablat" 出现 0 次 —— 零消融**（Patch Memory 没有、Warped PRoPE 没有、两个蒸馏阶段也没有，而训练里明明有现成的开关）；**VBench Overall 两划分都只排第三、吞吐第三、峰值显存第四、ΔIQ 第四且输给自家前作 Matrix-Game 3.0（Hard 上 2.40 vs 0.32，差 7.5×）**；🔴 **"实时 20 FPS" 与 Table 1 的 10.9 videos/hour 对不上**（无论按单实例还是 8 卡总吞吐读，都慢于实时 5.5× 或 44×），而 20 FPS 那套 INT8 + 75% 剪枝 VAE 的配置画质从未评测、也不在任何表里；🔴 **两个未披露项都压在它唯一赢得干净的位姿指标上** —— 评测用什么 pose estimator 没说（若与训练标注同源于 VGGT-Omega 则存在循环），而附录 C 的相机防碰撞机制参与了评测且会主动改写轨迹、比对基准没交代；另有 Figure 10 列头与 caption 冲突（图上 0–60 s vs caption 0–16 s）、"a cat" 实为金毛犬、Figure 11 自称控制变量而背景明显不同。📌 **标题挂 "with Patch Memory"，但该机制论文自己归给 MosaicMem，自认贡献是"整合"与"PRoPE 的视频改造"。**
 
 ---
 
