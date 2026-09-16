@@ -89,11 +89,13 @@ $$
 \nabla_\theta\, \mathrm{KL}\big(q_\theta \Vert p_T\big) = \mathbb{E}_{y \sim q_\theta}\Big[\big(\log q_\theta(y) - \log p_T(y)\big)\,\nabla_\theta \log q_\theta(y)\Big]
 $$
 
-原话是 *"minimizing reverse KL gives a **REINFORCE-style ascent direction with dense reward** `r = log p_T − log q_θ`, treating r as scalar feedback, i.e., **stopping gradients through r**"* —— **连 stop-gradient 都写明了**。差别只在本篇用的是单样本 MC 估计（sampled-token），而那篇写的是完整期望形式 —— **前者是后者的单样本实现，不是不同的结果。** 而那篇自己也没把它当新结果，明确归给了 MiniLLM（Gu et al., ICLR 2024）与 [Thinking Machines 的博客](../on_policy_distillation/blog_zh.md)。
+原话是 *"minimizing reverse KL gives a **REINFORCE-style ascent direction with dense reward** `r = log p_T − log q_θ`, treating r as scalar feedback, i.e., **stopping gradients through r**"* —— **连 stop-gradient 都写明了**。差别只在本篇用的是单样本 MC 估计（sampled-token），而那篇写的是完整期望形式 —— **前者是后者的单样本实现，不是不同的结果。**
+
+⚠️ **不过要说准一点**：那篇也是把 Proposition 1 当作**自己的结果**提出的（摘要与 §1 都写 *"**We establish** gradient-level identities…"*，Proposition 本身不带引用），它只把下游的**解释**——"OPD 视作 dense-reward on-policy RL"——归给了 MiniLLM（Gu et al., ICLR 2024）与 [Thinking Machines 的博客](../on_policy_distillation/blog_zh.md)。**所以两篇是各自独立地把同一条恒等式当自己的东西在用，区别只在那篇早三个月、且把它放在"桥梁"而非头条贡献的位置。**
 
 ⚠️ **本篇的参考文献里，这三个出处一个都没有** —— 它在 §2 把 OPD 归给了**四个用了 OPD 的模型技术报告**（DeepSeek-V4、MiMo-V2-Flash、Qwen3、GLM-5）。**把范式的出处记成"谁在用它"而不是"谁形式化了它"，是这条改写读起来像原创的直接原因。**
 
-📌 **不过要把账算公道：本篇真正新的那一步，那篇确实没有。** [Decoupling KL](../decoupling_kl/analysis.md) 全文不出现 "unbounded"/"sign of"/"correctness"/"verifiable"（逐个 grep 均为 0）—— **「这个 reward 的符号只由谁更自信决定、与轨迹对错无关，因而违反 RLVR 约定」这个观察，以及由它导出的 ReLU 门，是 OPDVR 的贡献。**
+📌 **不过要把账算公道：本篇真正新的那一步，那篇基本没有。** [Decoupling KL](../decoupling_kl/analysis.md) 全文不出现 "unbounded"；**符号可正可负它倒是提到了**（附录 D 讨论 Schulman 的 k1 估计量时写 *"k1 can be negative for individual samples"*，而它用的正是 k1 形式的 log-ratio reward）—— 🔴 **但它从未把这个符号与「轨迹对错」联系起来**（"correctness"/"verifiable" 全文 0 次），也没有由此导出任何算法改动。**所以「reward 符号与轨迹正确性无关、因而违反 RLVR 约定」这个观察，以及由它导出的 ReLU 门，仍然是本篇的贡献。**
 
 ### 3.2 两类冲突 token
 

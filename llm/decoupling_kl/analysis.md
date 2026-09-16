@@ -86,9 +86,14 @@ $$
 
 ⚠️ **但要把账算公道，这里有三层**：
 
-1. **这篇自己并没有把这条恒等式当作新结果。** 它的原创性声明写得很克制 —— *"The two off-diagonal objectives … have **not, to our knowledge, been systematically studied**"*，新意在**2×2 解耦与实证研究**，不在梯度恒等式。
+1. ⚠️ **这篇自己其实是把 Proposition 1 当作本文结果提出的** —— 摘要与 §1 都用 *"**We establish** gradient-level identities showing that…"*，而 **Proposition 1 本身不带任何引用**。它把出处只挂在了下游的**解释**上（见下一条）。所以严格说，**这两篇是各自独立地把同一条恒等式当作自己的东西在用**，只是本篇早三个月、而且把它放在"引理/桥梁"的位置而非头条贡献（它自称的新意是 *"The two off-diagonal objectives … have **not, to our knowledge, been systematically studied**"*，即 2×2 解耦与实证研究）。
 2. **它把「OPD 视作 dense-reward on-policy RL」这个视角明确归给了 Thinking Machines 的博客**（*"student-prefix reverse KL yields OPD, viewed as dense-reward on-policy RL **[27]**"*，[27] 就是[那篇博客](../on_policy_distillation/blog_zh.md)），而 reverse-KL 蒸馏的策略梯度推导底子来自 **MiniLLM**（Gu et al., ICLR 2024，本文的 [11]，在 §1 和 §2.2 都被引作 OPD 的源头之一）。
-3. 🔴 **OPDVR 真正新的那一步，这篇确实没有**：本篇**全文不出现** "unbounded"、"sign of"、"correctness"、"verifiable"（我逐个 grep 过，全是 0 次）。**「这个 reward 的符号只由谁更自信决定、与轨迹对错无关，因此违反 RLVR 约定」这个观察，以及由它导出的 ReLU 门，是 OPDVR 的。**
+3. 🔴 **OPDVR 真正新的那一步，这篇基本没有 —— 但要说得更准一点**：
+   - **"unbounded" 全文不出现**（我 grep 过，0 次）；
+   - **符号不定这件事本篇提到了，但只当作估计量的性质**：附录 D 讨论 Schulman 的三个 KL 估计量时写 *"it is **not guaranteed to be non-negative for each individual sample**"*、*"**k1 can be negative for individual samples**, even though its expectation is non-negative"*，并说明本文用的正是 k1 形式的 log-ratio reward；
+   - 🔴 **但它从未把这个符号与「轨迹对错」联系起来** —— "correctness"、"verifiable" 全文 0 次，没有"错的答案上也可能拿正 reward"这类讨论，也没有任何由此导出的算法改动（没有 baseline、没有 advantage、没有 clipping、没有门控）。
+
+   **所以「reward 符号与轨迹正确性无关、因而违反 RLVR 约定」这个观察，以及由它导出的 ReLU 门，仍然是 OPDVR 的贡献。** 本篇只走到了"这个标量逐样本可正可负"，没走到"它该由 verifier 定符号"。
 
 📌 **所以准确的表述是**：**OPDVR 的「改写」本身不是新的** —— 本篇早它三个月，而底子可追到 MiniLLM（ICLR 2024）与 Thinking Machines 的博客；**OPDVR 真正新的是「RLVR 对齐」那一步和那个 ReLU 门。**
 
@@ -117,14 +122,20 @@ $$
 
 > *"reverse KL can produce a **stronger pre-RL model**, but its reduced entropy constrains exploration and can lead to accuracy degradation, whereas **forward KL is a more reliable initialization** for continued policy optimization."*
 
-**具体数字**（4096-token 蒸馏 + Qwen3-4B teacher，MATH500 准确率）：
+**论文正文给的数字**（4096-token 蒸馏 + Qwen3-4B teacher，MATH500 准确率）：*"student-prefix reverse KL starts from the strongest checkpoint at roughly **45%** … but drops to about **36%** during GRPO, whereas student-prefix forward KL **starts lower, around 40%, and improves to about 45%**."*
 
-| 初始化 | 进 GRPO 前 | 出 GRPO 后 |
+🔴 **但我按 400 DPI 放大 Figure 3 左下面板逐条读了曲线，正文这两个数字都不对**：
+
+| 初始化 | 正文说 | **图上实际** |
 |---|---|---|
-| **student-prefix reverse KL（= OPD）** | **≈45%**（最强起点） | 🔴 **掉到 ≈36%** |
-| **student-prefix forward KL（= DAgger）** | ≈40%（起点更低） | ✅ **涨到 ≈45%** |
+| **student-prefix reverse KL（= OPD，绿实线）** | 45% → 36% | ✅ ≈0.450 → ≈0.367，对得上 |
+| **student-prefix forward KL（= DAgger，蓝虚线）** | 40% → **45%** | 🔴 **≈0.370 → ≈0.425** —— **起点不是 40%，终点从未达到 45%** |
 
-Qwen3-8B teacher 在 128-token 设定下是同样的形状：reverse 起点更高但收在 ≈36%，forward 从 ≈31% 涨到 ≈36%，且全程熵更高。
+**两处偏差都朝着让结论更好看的方向**：起点报高了约 3 分（显得"要追的差距更小"），终点报高了约 2.5 分（显得"完全追平了 reverse KL 的原始 45%"）。
+
+📌 **定性结论仍然成立** —— 蓝线终点 0.425 确实高于绿线的 0.367，方向没错。但 ⚠️ **两条曲线的置信带在大部分区间里重叠得很厉害**（图上的阴影带很宽），而论文**没有说明那个带是什么**（标准差？三次运行的极差？）。
+
+Qwen3-8B teacher 在 128-token 设定下形状类似，但正文的数字同样偏乐观：它说 reverse 收在 ≈36%、forward 从 ≈31% 涨到 ≈36%，而 **Figure 5 上半两条线实际都收在 ≈0.375 附近**。
 
 📌 **一句话：最强的单独蒸馏目标，不一定是最好的 RL 起点。**
 
@@ -173,6 +184,27 @@ $$
 
 ---
 
+## 5.3 📌 论文把自己最好的结果埋在了附录里
+
+**四个目标在「4096-token 蒸馏 → GRPO」之后的完整成绩在附录 Table 6，而论文正文没有分析它、也没有算过任何行均值。我按四个 benchmark 算了一遍**（论文没给这一列）：
+
+| 目标（Qwen3-4B teacher） | 平均 Avg@k | 平均 Pass@k |
+|---|---|---|
+| **Student + Forward KL（DAgger）** | **38.41** | **50.57** |
+| Teacher + Forward（off-policy SFT） | 32.85 | 46.42 |
+| Student + Reverse（OPD） | 30.61 | 42.81 |
+| Teacher + Reverse（offline-RL 式） | **27.96**（垫底） | 40.53 |
+
+🔴 **`Student + Forward KL` 在 8 列里拿下 6 列最优，平均 Avg@k 比 OPD 高 7.8 分、比 off-policy SFT 高 5.6 分 —— 这是全表最好的一行，而且它正是论文所谓"从没被系统研究过"的那个对角线外的格子。**
+
+⚠️ **但 Table 5 / Table 6 被放在附录 I，配的只有一段纯描述性文字，没有任何分析。** 论文正文的叙事停在"forward KL 是更可靠的 RL 起点"这个定性结论上，**没有把"DAgger 格是 distill-then-RL 的最优解"这句话说出来。**
+
+📌 **反过来，另一个对角线外的格子基本是死的**：`Teacher + Reverse KL`（offline-RL 式蒸馏）在 Table 2 的 8 个 Pass@k 列里输了 6 列，在上表里平均 Avg@k 垫底，在所有图里都是熵最低的那条线。**它在全文唯一的存在理由是理论上的对称性（附录 F）和 Figure 6 的算力论证 —— 而后者其实是关于 teacher 前缀本身，不是关于"teacher 前缀 + reverse KL"这个配对。**
+
+**所以 2×2 解耦的实际收益要说准**：**它多出来的两格里，一格（DAgger）是 distill-then-RL 的赢家且被论文自己低估了，另一格（offline-RL 式）在它自己的数据上是条死路。**
+
+---
+
 ## 6. 争议与权衡
 
 - ⚠️ **规模很小，而且只有一个学生。** student 固定是 **Qwen3-0.6B**，teacher 只有 4B / 8B 两个。**能力差距、模型家族、更大的学生全都没扫过。** 0.6B 的学生在 AIME24 上 forward KL 拿 0.00 —— 在这个量级上讨论"推理蒸馏"，很多结论未必能外推。
@@ -181,7 +213,13 @@ $$
 - ⚠️ **KL mixing 只在一个设定上测过**（student 前缀 + 4096 + Qwen3-4B），而且 **Figure 7 只有曲线、没有表**，`λ` 的具体取值与逐点数字都没给。"forward-heavy 更好"这个结论目前只有一个设定的曲线支撑。
 - ⚠️ **entropy-gated curriculum 的两个关键超参没给敏感性分析**：熵阈值 `H_min` 取多少、长度阶梯 `L_0 → L_1 → …` 怎么排。**而这两个恰恰是要复现它必须知道的。**
 - ⚠️ **两个对角线外的目标是这篇的卖点，但论文没有为它们单独辩护。** DAgger 式 on-policy SFT 在 RL 跟进上赢了，这是个好结果；但 **teacher-prefix reverse KL（offline-RL 式）在全文里基本没有出彩之处**，它更像是为了把 2×2 填满而存在的一格。
-- 📌 **正面：对照设计是干净的。** *"all objectives use matched training steps, optimizer, and hyperparameters"* —— 四个目标同步数同优化器同超参，这是 2×2 研究最容易翻车的地方。另外它同时报了**同步数**与**同 FLOPs** 两种口径（§4.2），这比只报一种诚实。
+- ⚠️ **同超参是"受控"，但也意味着没有逐目标调参。** 四个目标共用 `lr = 5e-7` —— 而其中两个是交叉熵目标、另两个是带无界 log-ratio reward 的 REINFORCE 式目标。**如果 reverse KL 的熵塌有一部分是学习率造成的，那全文的核心权衡就被混淆了**，而论文没有任何 LR 敏感性研究。
+- ⚠️ **RL 阶段用的是 `β = 0`、纯准确率 outcome reward 的 GRPO，没有熵奖励。** 也就是说"reverse KL 起点探索不足"这个结论，是在对低熵初始化**最不利**的 RL 设定下测出来的。论文没有测带熵奖励的 GRPO。
+- ⚠️ **两处内部矛盾**：① teacher 到底是不是 base 模型 —— §3 写 "Qwen3-4B and Qwen3-8B"，附录 G.1 写 "Qwen3-4B-**Base** and Qwen3-8B-**Base**"，作为推理 teacher 这是两种完全不同的模型；② 种子 —— §3 说 *"averaged over three runs"*，附录 G.3 却写 *"random seed 42"*（单种子）。**而所有图里的阴影带从未被定义。**
+- ⚠️ **多个数字与它自述的评测协议对不上**：AMC23 是 40 题、Avg@5 的粒度应是 0.5pp、Pass@5 的粒度应是 2.5pp，但 Table 1 里 Student/8B/Forward 的 AMC23 Pass@k = **50.50**，在这个协议下不可能出现。MATH500（500 题 ×3）与 GSM8K（1319 题 ×3）的多个数值同样落不到应有的网格上。**论文从未说明 Avg@k / Pass@k 具体怎么估的**，所以这些数字无法从协议反推。
+- ⚠️ **"长度膨胀是 reverse KL 的病"这个框架不完全成立**：Table 2 里 **Student/Qwen3-8B/Forward** 的长度是 3095 / 6134 / 7138 / 8152，Figure 4 下排也显示蓝线（Student+F-KL）涨到 ≈3.55k。**在 8B teacher 下 forward KL 同样会膨胀**，正文从未承认。
+- ⚠️ **硬件与成本只给了平均值**：单张 **H100 94GB**，蒸馏平均约 16 小时、RL 平均约 14 小时。**没有运行次数、没有总 GPU-hours**，teacher 前缀那一路的墙钟时间**完全没给**（只给了 OPD 和 RL 的）。而 Figure 6 那个"cached logits 更省"的论证，**没有把生成与存储 teacher logits 的成本算进去** —— 词表 151936、bf16 下每 token 的全词表 logits 约 0.3 MB。
+- 📌 **正面：对照设计在"受控"这个意义上是干净的。** 四个目标同步数、同优化器、同超参、同种子，这是 2×2 研究最容易翻车的地方；而且它同时报了**同步数**与**同 FLOPs** 两种口径（§4.2），比只报一种诚实。附录 H.1 还把 FLOPs 拆到了每 token 的层级（Qwen3-0.6B ≈ 1.075 GFLOPs/token，student 前缀比 teacher 前缀贵 **3.62×**）。
 - 📌 **正面：原创性声明克制。** 它没有把 Proposition 1 当新结果卖，明确把新意限定在"两个对角线外的目标未被系统研究过"，并把 dense-reward 视角归给了 Thinking Machines 博客、把 reverse-KL 蒸馏归给 MiniLLM。**对照 [OPDVR](../opdvr/analysis.md) 把同一条改写当作核心贡献，这里的对比很说明问题。**
 
 ---
