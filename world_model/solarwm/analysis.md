@@ -471,6 +471,10 @@ A: **省掉了 Causal Forcing 系方法里"专门为少步生成做的初始化�
 
 ⚠️ **但 SolarWM 没有做这个对照实验**。"省掉一个阶段而质量不降"这个宣称，需要的正是"TF-AnyFlow vs (Causal ODE + TF)"的并排比较，论文没给。
 
+📌 **补记（2026-09）：又一篇站到了同一立场，但同样没给数据。** [Matrix-Game 3.5](../matrix_game_35/analysis.md) 的 Stage 1 用**teacher-forced 感知流匹配（PFM）**，明说 *"This single objective **simultaneously learns causal denoising and few-step generation**"* —— **与本篇同立场、不同手段**（那边在冻结感知特征空间里约束流匹配，本篇用 AnyFlow 监督任意两个噪声水平间的 flow map），而且**同样零消融**。
+
+**所以在"② 少步初始化要不要独立阶段"这个问题上现在是 2:1**，但 **[ForgeWM](../../video_generation/forgewm/analysis.md) 仍是唯一一篇给了带置信区间对照的**（Table A2）。详见[五篇横向对照](../../video_generation/dmd_few_step_ar/analysis.md)。
+
 ---
 
 **Q: fused-PRoPE 和别的相机注入方式差在哪？**
@@ -485,6 +489,10 @@ fused-PRoPE 的流程（沿用 MosaicMem）：
 4. 在原生输出投影之前施加**匹配的输出变换**
 
 📌 **两个"不需要"是它的卖点**：**不需要单独的控制分支，不需要额外的 attention pass**。相机运动是通过注意力计算本身引入的。
+
+🔴 **补记（2026-09）：这套机制被另一篇独立采用了。** [Matrix-Game 3.5](../matrix_game_35/analysis.md) 的 **Warped PRoPE** 与本篇的 fused-PRoPE **是同一个机制**（原生时空 RoPE 之后把投影矩阵乘到 Q/K/V 上、单次 softmax 同时携带 Δt 与相对位姿 `M = P_i P_j^{-1}`、零新增参数），**而且两篇都明确沿用 [MosaicMem](https://arxiv.org/abs/2603.17117)**。**两个独立团队收敛到同一套相机注入方案，这条基本可以当定论。**
+
+📌 **但那篇多做了一步值得记**：它指出**原生 PRoPE 把 head 维度切成不相交的块**（一半给相机投影、另两份给 2D 行列）是为无序多视角图像设计的、**没有时间轴**，直接搬到视频上会挤掉骨干赖以编码时序的帧轴；所以它改成**把相机投影平铺到所有 head 通道**、叠在完整时空 RoPE（含帧轴）之上。**本篇没有讨论这个取舍。**
 
 **与仓库里其它路线的对照**：
 

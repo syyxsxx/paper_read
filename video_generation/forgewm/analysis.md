@@ -467,6 +467,12 @@ A: **五篇打在五个不同位置，而且互相之间几乎不引用。**
 
 **SolarWM 的 Table 1 列了 ForgeWM 一行但未对比**，ForgeWM 早于 SolarWM 故未引用，**没人做过直接比较**。裁决它需要的是 "TF-AnyFlow vs (TF + Causal ODE/CD)" 的并排实验。
 
+🔴 **补记（2026-09）：又一篇站到了对立面，但同样没给数据。** [Matrix-Game 3.5](../../world_model/matrix_game_35/analysis.md) 的 Stage 1 用 **teacher-forced 感知流匹配（PFM）**，明说 *"This single objective **simultaneously learns causal denoising and few-step generation**"* —— 与 SolarWM 同立场、不同手段（那边是 AnyFlow，这边是在冻结 InternVideo2 特征空间里约束流匹配），而且**全文 "ablat" 出现 0 次、零消融**。
+
+**所以现在是 2:1，但按证据仍然是 1:0 —— 本篇的 Table A2 依然是唯一一份带 bootstrap CI 的对照。** 📌 而三篇合起来其实指向同一件事：**少步能力必须被显式训进去**（Matrix-Game 3.5 把它写进了 Stage 1 的目标，而不是指望 DMD 顺手解决）—— **分歧只在它要不要占一个独立阶段。**
+
+📌 **顺带一条仓库线索**：本篇的主 baseline 是 **Matrix-Game 2.0**，而 Matrix-Game 3.0（arXiv:2604.08995）与 3.5 都已问世 —— **仓库里只有 3.5 有笔记，2.0 和 3.0 都缺，这条线是断的。**
+
 ⚠️ **ForgeWM 的引用面很窄**：**CausVid、Self-Forcing++、LongLive、Rolling Forcing、DMD2、OPSD-V（早于本文）全部未引用**；同 Minecraft 域的 MineWorld、同族的 Matrix-Game 3.0、最接近的 Causal-rCM 都只引用不对比。**连 backbone 用的 Wan2.1 都没有文献条目。**
 
 ---

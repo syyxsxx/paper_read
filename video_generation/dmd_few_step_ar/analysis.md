@@ -141,6 +141,24 @@
 
 **我的判断**：**在有人补上对照之前，默认保留 ②。** 唯一的实测证据站在 ForgeWM 一边，而 SolarWM 那条是一个自洽但未经检验的推理。
 
+### 🔴 补记（2026-09）：第六篇工作投了第三票，但证据格局没变
+
+[Matrix-Game 3.5](../../world_model/matrix_game_35/analysis.md)（Riemann Dynamics）的蒸馏同样是**两阶段**，而且它的 Stage 1 明说：
+
+> *"**This single objective simultaneously learns causal denoising and few-step generation**, yielding an efficient, high-quality causal initializer."*
+
+它用的手段是 **teacher-forced 感知流匹配（PFM）** —— 在冻结 VAE 解码器 + 冻结 InternVideo2-1B 的**感知特征空间**里约束流匹配，而不是在 VAE latent 空间回归 velocity。**这是继 SolarWM 的 TF-AnyFlow 之后，第二条"把 ①② 合并"的技术路线。**
+
+| | 立场 | 手段 | 证据 |
+|---|---|---|---|
+| **ForgeWM** | ② 决定性 | 在线因果一致性蒸馏 | ✅ **Table A2，带 bootstrap CI** |
+| **SolarWM** | ② 可删 | TF-AnyFlow | ❌ 零消融 |
+| **Matrix-Game 3.5** | ② 可删 | **PFM（感知特征空间）** | ❌ **零消融**（全文 "ablat" 0 次） |
+
+📌 **按篇数 2:1，按证据仍是 1:0** —— ForgeWM 依然是唯一一篇为这个问题做过带置信区间对照的。
+
+📌 **但这第三票强化了本节开头那个更细的读法**：**Matrix-Game 3.5 把少步能力显式写进了 Stage 1 的目标**（PFM 直接在少步设定下约束干净预测），而不是指望 ③ 的 DMD 顺手解决。**三篇合起来指向同一件事 —— 少步能力必须被显式训进去；分歧只在它要不要占一个独立阶段。**
+
 ### 4.2 DMD 该不该是最后一个阶段
 
 **三篇独立指向同一个怀疑：③ 的 DMD 是在用 paired 保真度换 per-frame 观感。**
@@ -248,6 +266,8 @@ ABot-World-0 ──✗────  OPSD-V / SolarWM（未对比）
 ```
 
 📌 **五篇两两之间共 10 对，做过模型质量定量对比的：0 对。**（下面 SolarWM 那张表里确实有关于 ABot / ForgeWM 的数字，但那是 artifact 与数据规模的核查，不是模型效果的比较。）
+
+⚠️ **补记**：把 [Matrix-Game 3.5](../../world_model/matrix_game_35/analysis.md) 算进来是六篇、**15 对，仍然是 0 对** —— 它对这五篇的引用是**零**（ForgeWM / SolarWM / ABot-World-0 / Mask Forcing / OPSD-V 全文一篇都没引），它引的同侧工作是 Causal Forcing、DMD/DMD2、HiAR、CausVid、Self-Forcing。
 
 ⚠️ **另外两条跨篇的数据核对，都指向同一张表**——[SolarWM 的 Table 1 发布矩阵](../../world_model/solarwm/analysis.md)是**由 SolarWM 作者自己定义维度、自己评判同行、把自己那行填成全对号（且标注为"承诺"而非已核实状态）**的：
 

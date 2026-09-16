@@ -394,6 +394,19 @@ A: **解决的是"监督方向"与"监督位置"的错配——这是 on-policy 
 
 📌 **反过来看这也解释了为什么"最近一个 chunk 要保留学生生成的"**：如果 teacher 的 cache 全是真实 chunk，它就完全活在"历史从未退化"的世界里，**给出的方向对学生是不可达的**。留一个学生 chunk，等于让 teacher **"看着学生刚犯的错"来给下一步的方向**。
 
+🔴 **补记（2026-09）：另一篇独立发现了同一个问题。** [Matrix-Game 3.5](../../world_model/matrix_game_35/analysis.md) 在它的 self-rollout DMD 一节写：
+
+> *"the student and scorers maintain **different memory states**. The student updates online memory from generated chunks, while **feeding the same potentially drifted history to the bidirectional scorers would compromise the supervision**."*
+
+**同一个诊断，两种解法**：
+
+| | 解法 | 代价 |
+|---|---|---|
+| **本篇（OPSD-V）** | 把 teacher 的旧 cache **换成真实视频 chunk**（保留最近一个学生 chunk 防止不可达） | teacher 活在"历史从未退化"的世界里 |
+| **Matrix-Game 3.5** | **让学生在线更新自己的记忆，把 scorer 的记忆固定在初始的稳定外部条件上**（初始记忆、anchor 帧、文本、相机轨迹） | scorer 看到的上下文随 rollout 推进会越来越旧 |
+
+📌 **共同原则是"把学生与 teacher/scorer 的记忆状态解耦"** —— 这正是本篇总结的那条原则（**学生决定在哪里施加监督，teacher 决定往哪个方向走**）在记忆维度上的体现。⚠️ **两篇互不引用，哪种解法更好也没人比过。**
+
 ⚠️ **但这套论证里有个洞**：**"AR-consistent teacher cache"这个命名级贡献本身零消融**。既没有"全部换真实 chunk"的对照，也没有"完全不换"（纯自蒸馏）的对照。**所以"保留最近一个"这个具体选择有多重要，目前只有论证没有数据。**
 
 ---
