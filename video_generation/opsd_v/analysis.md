@@ -413,15 +413,17 @@ A: **解决的是"监督方向"与"监督位置"的错配——这是 on-policy 
 
 > *"the student rolls out its own multi-chunk trajectories and is scored against the teacher along that self-generated path (**with ground-truth context and detached history**)."*
 
-**即「状态取自学生、上下文换成真值」—— 与本篇是同一个解法。** 三篇排在一起：
+**读起来像是与本篇同一个解法。🔴 但它的公式说的是另一回事** —— Eq. 7 把 `s_real` 与 `s_fake` 都条件在同一个 `c_i` 上，而 `c_i` 在它 §3.1 被定义为 *"the four context streams … are **all functions of the past** `z_<i`"*，`ẑ_i` 又明说来自学生自 rollout。**照定义链推，`c_i` 就是学生漂移过的上下文，与那个括号直接冲突，且论文没有任何地方调和。**
 
-| | teacher/scorer 打分时的上下文 | 随 rollout 前进吗 |
+**于是三篇排在一起，只有本篇是可复现的**：
+
+| | teacher/scorer 打分时的上下文 | 论文自洽吗 |
 |---|---|---|
-| **本篇（OPSD-V）** | **真实视频 chunk 逐个填充**，只留最近一个学生 chunk | ✅ 前进 |
-| **AlayaWorld** | **ground-truth context**（+ detached history） | ✅ 随自生成路径前进 |
-| **Matrix-Game 3.5** | ⚠️ 公式说共享在线条件、散文说冻在初始记忆 —— **自相矛盾** | ❌（按散文口径） |
+| **本篇（OPSD-V）** | **真实视频 chunk 逐个填充**，只留最近一个学生 chunk，随 `i` 前进 | ✅ **唯一写到可复现程度的一篇**（显式 cache 表达式 + 明确保留策略） |
+| **AlayaWorld** | ⚠️ 散文括号说 ground-truth context + detached history，**公式蕴含学生上下文** | 🔴 自相矛盾 |
+| **Matrix-Game 3.5** | ⚠️ 公式说共享在线条件、散文说冻在初始记忆 | 🔴 自相矛盾 |
 
-⚠️ **但 AlayaWorld 缺了本篇那个关键细节**：它没说要不要保留最近一个学生 chunk。**若上下文全是真值，按本篇的论证 teacher 就成了 fully teacher-forced oracle，给出的方向对学生不可达** —— AlayaWorld 没有讨论这个风险。
+📌 **这件事值得单独记住**：`s_real − s_fake` 的方向直接由这个上下文决定，**它不是实现细节**。**另外两篇都在这里含糊，而本篇没有** —— 这是本篇一个没被自己强调的优点。
 
 ⚠️ **三篇互不引用，哪种解法更好也没人比过。**
 

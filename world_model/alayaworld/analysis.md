@@ -18,7 +18,7 @@
 
 1. **它是 [PWM](../pwm/analysis.md) 的上游** —— 同一个 Alaya Lab，而 PWM 的空间记忆明说是「借用 AlayaWorld 的几何对齐空间记忆机制」；
 2. **它的空间记忆与 [Matrix-Game 3.5](../matrix_game_35/analysis.md) 的 Patch Memory 是同一类但不同实现**（见 [§3](#3-空间记忆与-matrix-game-35-的-patch-memory-正面对比)）；
-3. 🔴 **它的蒸馏一句话回答了我在 OPSD-V / Matrix-Game 3.5 上追了两轮的那个问题** —— DMD 时 teacher 看到的历史是什么（见 [§5.2](#52--scorer-看到的历史第三种答案而且这次写清楚了)）。
+3. 🔴 **它的蒸馏一句话回答了我在 OPSD-V / Matrix-Game 3.5 上追了两轮的那个问题** —— DMD 时 teacher 看到的历史是什么（见 [§5.2](#52--scorer-看到的历史公式与散文又一次对不上)）。
 
 ⚠️ **但要先说清**：**"ablat" 与 "limitation" 这两个词在全文各出现 0 次** —— 四路上下文、三个蒸馏项、两套抗漂移机制，**没有一个被单独验证过**，也没有 Limitations 章节。
 
@@ -162,27 +162,47 @@ $$
 
 📌 **学生本身是冻结 backbone 上的一个 LoRA，而且时序记忆与空间记忆在这一阶段都冻结。** 产出 **4 步/chunk**、24 fps、保留完整相机控制与两路记忆。
 
-### 5.2 🔴 scorer 看到的历史：第三种答案，而且这次写清楚了
+### 5.2 🔴 scorer 看到的历史：公式与散文又一次对不上
 
-**这正是我在 [OPSD-V](../../video_generation/opsd_v/analysis.md) 与 [Matrix-Game 3.5](../matrix_game_35/analysis.md) 上追问过的那件事。本篇的原话是**：
+**这正是我在 [OPSD-V](../../video_generation/opsd_v/analysis.md) 与 [Matrix-Game 3.5](../matrix_game_35/analysis.md) 上追问过的那件事。本篇散文的原话是**：
 
 > *"the student rolls out its own multi-chunk trajectories and is scored against the teacher along that self-generated path (**with ground-truth context and detached history**)."*
 
-**拆开看是两件事**：
-- **`ground-truth context`** —— 打分时用的上下文是**真值**，不是学生自己漂过的那份；
-- **`detached history`** —— 历史被 detach，**梯度不沿自回归链回传**。
+**读起来像是给了答案**：上下文用真值、历史 detach 掉梯度。**但公式说的是另一回事。**
 
-**于是三篇的答案排在一起**：
+**Eq. 7 里 `s_real` 和 `s_fake` 条件的是同一个 `c_i`：**
 
-| | student 采样时的上下文 | teacher/scorer 打分时的上下文 | 随 rollout 前进吗 |
+$$
+\nabla_\theta D_{\mathrm{KL}}(p_{\theta,\tau}\,\|\,p_{\mathrm{data},\tau}) = -\,\mathbb{E}\!\left[\Big(s_{\mathrm{real}}(\hat z_i^{\tau},\tau\mid c_i) - s_{\mathrm{fake}}(\hat z_i^{\tau},\tau\mid c_i)\Big)\frac{\partial \hat z_i}{\partial\theta}\right]
+$$
+
+**而 `c_i` 在 §3.1 只被定义过一次，原文（p.6）：**
+
+> *"Writing `c_i = (s, h_i, g_i, n_i, π≤i, y_i)` for the full per-chunk conditioning — where **the four context streams `s, h_i, g_i, n_i` are all functions of the past `z_<i`** —"*
+
+**再加上 Eq. 7 下面那句 `ẑ_i` 是 *"a chunk from the student's own self-roll-out"`** —— 照论文自己的定义链推：`ẑ_i` 来自自 rollout ⇒ `z_<i` 是学生生成的 ⇒ **`c_i` 就是学生漂移过的那份上下文**，且 teacher 和 critic 吃的是同一份。**这与括号里的 "ground-truth context" 直接冲突。**
+
+⚠️ **论文没有任何地方调和这两者**：没有第二个符号（没有 `c_i^real` vs `c_i^student`），没有说"真值上下文"替换的是四路里的哪一路，也没有说 `detached` 到底是 `.detach()` 还是"换成真值"。至少三种读法都与文本相容：
+
+1. 四路全换成真实视频导出的上下文（OPSD-V 路线）；
+2. 只把时序历史从计算图 detach 掉、内容仍是学生生成的，"ground-truth context" 只指 sink / I2V 帧取自真实片段；
+3. 按 Eq. 7 字面来，全是学生上下文。
+
+📌 **我倾向第 2 种** —— `detached` 在这类文献里通常就是 `.detach()`，而且 §3.4 明说这一阶段「temporal and spatial memory are kept frozen」，把冻结模块的历史 detach 掉是最省事的写法。**但这是我的推断，不是论文说的。**
+
+**于是三篇的答案排在一起，全是不确定的**：
+
+| | student 采样时的上下文 | teacher/scorer 打分时的上下文 | 论文自洽吗 |
 |---|---|---|---|
-| **[OPSD-V](../../video_generation/opsd_v/analysis.md)** | 自己的 KV cache（全是自生成） | **真实视频 chunk 逐个填充**，只保留最近一个学生 chunk | ✅ 前进，始终与学生对齐在同一时刻 |
-| **[Matrix-Game 3.5](../matrix_game_35/analysis.md)** | 在线检索的记忆 | ⚠️ **公式说共享、散文说冻在初始记忆 —— 自相矛盾** | ❌（按散文口径） |
-| **AlayaWorld（本篇）** | 自己 rollout 的路径 | **ground-truth context** | ✅ 随路径前进（是同一条自生成路径上的真值上下文） |
+| **[OPSD-V](../../video_generation/opsd_v/analysis.md)** | 自己的 KV cache（全是自生成） | **真实视频 chunk 逐个填充**，只保留最近一个学生 chunk | ✅ **唯一写清楚的一篇**（显式 cache 表达式 + 明确的保留策略） |
+| **[Matrix-Game 3.5](../matrix_game_35/analysis.md)** | 在线检索的记忆 | ⚠️ 公式说共享在线条件、散文说冻在初始记忆 | 🔴 **自相矛盾** |
+| **AlayaWorld（本篇）** | 自己 rollout 的路径 | ⚠️ 公式蕴含学生上下文、散文括号说 ground-truth | 🔴 **自相矛盾** |
 
-📌 **本篇与 OPSD-V 实质上是同一个解法的两种说法** —— 都是「**状态取自学生、上下文换成真值**」。OPSD-V 把它讲得更细（`h^t_i` 的显式表达式、保留最近一个学生 chunk 防止方向不可达），本篇只有一个括号，**但至少没有自相矛盾**。
+🔴 **结论反过来了**：我原先以为本篇终于把这件事说清楚了，**其实它和 Matrix-Game 3.5 犯的是同一个毛病 —— 公式和散文各说一套**。**三篇里只有 OPSD-V 把 scorer 的上下文写到了可复现的程度。** 这个量在 DMD 的梯度里直接决定 `s_real − s_fake` 的方向，**不是实现细节。**
 
-⚠️ **本篇缺的恰恰是 OPSD-V 那个细节**：它没说要不要保留最近一个学生 chunk。**如果上下文全部是真值，按 OPSD-V 的论证，teacher 就成了"活在历史从未退化的世界里"的 oracle，给出的方向对学生不可达。** 本篇没有讨论这个风险。
+⚠️ **另外本篇还缺 OPSD-V 那个关键细节**：没说要不要保留最近一个学生 chunk。**若上下文全是真值，按 OPSD-V 的论证 teacher 就成了"活在历史从未退化的世界里"的 oracle，给出的方向对学生不可达。** 本篇没有讨论这个风险。
+
+📌 **还有一处本篇独有、另两篇没有的问题**：本篇的**空间记忆是从学生自己解码出的像素渲染出来的**（decode → DA3 深度 → 进 cache `B` → warp），而 §3.4 把空间记忆**冻住**了。**那么 scorer 看到的 `g_i` 到底是从学生像素渲的还是从真值像素渲的？论文一个字都没说。**
 
 ---
 
@@ -226,15 +246,15 @@ $$
 
 | 项 | 值 |
 |---|---|
-| **Backbone** | **LTX-2.3**（fine-tune 而来），**15B video DiT** |
+| **Backbone** | **LTX-2.3**（fine-tune 而来）。🔴 **规模论文自相矛盾**：abstract 与 intro 都说 "**15B** video diffusion transformer"，而 §3 说「公开的 LTX-2.3 checkpoint 是 **22B** multimodal，我们**去掉 audio module，剩下 ~13B video DiT** 作为 backbone」。**13B ≠ 15B，同一篇里对不上**。另外 **LTX-2.3 本身没有引用**（[7] 指向的是 2024 年的 LTX-Video, arXiv:2501.00103）|
 | 输出 | **24 fps**，**540p / 720p**；主表评测在 **480p** |
 | chunk 结构 | 每 chunk **K = 4 个 latent frame** ≈ **约 1 秒视频** |
 | 控制 | **相机轨迹**（逐帧绝对位姿，注入时用相对增量走 AdaLN）+ **可切换的 chunk 级文本 prompt**（在 chunk 边界换 prompt 即触发"事件"，如战斗、施法） |
 | 深度 | **Depth-Anything-3**（单目） |
-| **训练数据** | **222,147 clips / 7 个来源**（含两个自建：**MUGEN** 与 **GameVerse**），真实拍摄 + 合成渲染混合；统一成「视频 + 逐帧内参与位姿 + 分层 caption」的记录格式 |
+| **训练数据** | **222,147 clips / 7 个来源**（⚠️ **自建源的数量论文自相矛盾**：正文说「two internally curated sources (**MUGEN** and **GameVerse**)」，但 Table 1 的 † 标了**三个** —— MUGEN 21,436 / GameVerse 124,116 / **GenEvent 6,490**；GenEvent 另注明是"由生成式视频模型合成"，用的哪个模型没给。合计 222,147 我核算无误），真实拍摄 + 合成渲染混合；统一成「视频 + 逐帧内参与位姿 + 分层 caption」的记录格式 |
 | 数据筛选 | 完整性、**分辨率 ≥ 720p**、**时长 ≥ 3 s**、**帧率 24–65 fps**、codec 白名单 |
 | caption | **1–2 fps 的密集标注，每条带显式 `[mm:ss]` 时间戳**（鼓励时间分段而非整段概括） |
-| **训练四阶段** | ① 双向预训练（全参微调 LTX-2.3，纯视频先验，无记忆无控制）→ ② 历史预训练（**冻 backbone，只用 LoRA 训 `H_φ`**）→ ③ 全栈微调（解冻全参 + 三个模块：history compression / camera control / next forcing）→ ④ 蒸馏（**学生是冻结 backbone 上的 LoRA**） |
+| **训练阶段** | 论文编号为 **Stage 1 / Stage 2（2a + 2b）/ Stage 3**，即 ① 双向预训练（全参微调 LTX-2.3，纯视频先验，无记忆无控制）→ ② 历史预训练（**冻 backbone，只用 LoRA 训 `H_φ`**）→ ③ 全栈微调（解冻全参 + 三个模块：history compression / camera control / next forcing）→ ④ 蒸馏（**学生是冻结 backbone 上的 LoRA**） |
 
 🔴 **完全没给的**：
 - **GPU 型号、卡数、训练时长、GPU-hours —— 一个都没有**；
@@ -250,13 +270,35 @@ $$
 
 - 🔴 **零消融。** **"ablat" 全文 0 次。** 四路上下文（sink / 时序 / 空间 / 最近帧）、三个蒸馏项（DMD / self-forcing++ / consistency）、两套抗漂移机制（Helios drift / error bank）、next forcing 辅助头 —— **一个都没有被单独验证**。而这篇的贡献恰恰是"把这些组合起来"，**没有消融就无法知道哪一块在起作用**。
   📌 **尤其可惜的是 error bank**：它是全文最有新意的设计（回放模型自己的残差），而且**有现成的对照可做**（纯 Helios vs Helios+bank），论文自己也描述了两者的调度关系，**却没有测**。
-- 🔴 **无 Limitations 章节**（"limitation" 全文 0 次）。
-- 🔴 **"efficient response" 是四大能力之一，却没有任何延迟/FPS 数字。** 对一篇主打交互的工作，这是最该有的那个数。
+- 🔴 **无 Limitations 章节**（"limitation" 全文 0 次）。📌 **但要给它记一笔诚实**：§1 末尾有一段自陈，原文 *"AlayaWorld still represents the world primarily through visual observations, estimated geometry, and visual memory. Its understanding of object state, physical causality, and long-term task structure therefore **remains limited to their visible consequences**."* —— **这话说得很准，而且是主动说的**，只是没有展开成一节，也没有对应的失败案例。
+- 🔴 **"有界"只覆盖了 DiT 那一段，系统并不有界。** 论文的原话是 *"Because the context is a **bounded rolling window** … the **compute per chunk is constant** and the horizon N is in principle unbounded"*。**token 上下文确实有界**（sink 1 + 时序 6 + 空间 ≤10 + 最近 1），**但空间记忆的 cache `B` 是单调增长的** —— rollout 第 4 步每生成一个 chunk 就 *"append"* 一次，**全文没有任何 eviction / 容量上限 / 降采样 / 体素化策略**（grep "evict"/"prune"/"discard" 均为 0）。而检索那一步是**贪心最大覆盖**，要把 **`B` 里每个候选**都 unproject + project 一遍才能算覆盖率 —— **所以检索开销和 cache 显存都随 rollout 线性增长**。"capped set of 10 **rendered** cache frames" 封的是检索的**输出**，不是**输入**。论文没有点破这一点。
+- 🔴 **"efficient response" 是四大能力之一，却没有任何延迟/FPS 数字** —— 而且实际的每 chunk 成本远不止那 4 步。按 §3.1 的 rollout 流程，**每个 chunk 要做：4 次 DiT forward + 1 次 VAE decode 到像素 + 1 次 Depth-Anything-3 单目深度 + 一次在增长中的 cache 上的几何检索与 splatting + 1 次 VAE encode**。**论文量化的只有第一项。** 对一篇主打交互的工作，这是最该有的那个数。
 - ⚠️ **主表的 prompt 被改写过**，而 baseline 大概率没有（见 §6）。
 - ⚠️ **主表在 480p，而宣传是 540p/720p。**
-- ⚠️ **最长量化 rollout 的长度论文没给。** iWorld-Bench 的协议长度未在报告里说明，而标题与摘要主打 "long-horizon"。📌 **不过它对 "unbounded horizon" 的论证是结构性的**（有界上下文 ⇒ 每 chunk 常数计算量），**这比单纯喊"无限"要扎实**，只是仍缺一条"跑到 N 分钟时质量如何"的曲线。
+- 🔴 **「声称无界 → 展示 60 秒 → 量化 0 秒」。**
+
+  | | 值 |
+  |---|---|
+  | **声称** | *"the horizon N is **in principle unbounded**, giving **arbitrarily long** interactive generation"*（§3.1）；标题与摘要主打 "Long-Horizon" |
+  | **展示** | **60 秒** —— Figure 8 每帧左上角有时间徽章 **0s / 12s / 24s / 36s / 48s / 60s**，**这是全文唯一的时间轴** |
+  | **量化** | **0。** Table 3 没有 rollout 长度这一列，§4.1/§4.2 从头到尾没说 iWorld-Bench 的 rollout 跑多长，**没有任何指标是作为 horizon 的函数报的** |
+
+  ⚠️ **而且那 60 秒本身就看得出退化**：我把 Figure 8 第一行放到 400 DPI 看，0s 是饱和的深蓝天空、枝干清晰，**到 48s 天空已经发白、左缘出现一道粗重的深色树干伪影，60s 整幅塌成灰白低对比**。（⚠️ 相机在这 60s 里从桦树林走到了工业建筑前，**曝光变化有一部分可能是真实的场景/朝向变化，我无法把两者分开** —— 但 caption 写的是 *"maintains **stable visual quality**"*，至少这一行不支持。）
+  📌 **它对 "unbounded" 的论证仍是结构性的**（有界 token 上下文 ⇒ 每 chunk 常数 DiT 计算量），**比单纯喊"无限"扎实** —— 但见下一条，这个论证只覆盖了 DiT 那一段。
 - ⚠️ **空间记忆的深度来自单目估计器（DA3），误差会随 rollout 累积进 cache** —— 论文没有讨论 cache 里几何误差的累积，也没有 eviction / 纠错策略。
-- 📌 **正面：benchmark 是第三方的**（iWorld-Bench），**而且额外做了 World Model Arena 的盲测人评** —— 虽然正文没给 Elo 数字。
+- ⚠️ **第二个评测承诺了但没报。** §4.1 原文：*"In addition, we evaluate AlayaWorld on the standardized **WorldMark** test suite [30] through the **World Model Arena** … with the resulting votes aggregated into **Elo ratings**."* —— 然后**全文零个 Elo 数字、零张表、连一句结论都没有**，直接甩给 `https://warena.ai/`。**这是本文唯一的人类偏好评测，也是唯一一个被设置好却拒绝报告结果的评测。**
+- 🔴 **利益关系全程未披露。** 逐条核对参考文献作者与 §6 贡献者名单：
+  - **WorldMark [30]**（那个没报结果的 benchmark）作者是 *X. Xu, Z. Lin, K. He, Y. Feng, X. Mao, Y. Yin, K. Zhang, Y. Ge* —— **其中 Xiaojie Xu / Zhengyuan Lin / Kang He / Yuanyang Yin / Kaipeng Zhang（Core Lead）/ Yongtao Ge 六人就在本文贡献者名单里**；
+  - **Table 3 的 baseline 之一 Yume 1.5 [19]** 作者 *X. Mao, Z. Li, C. Li, X. Xu, K. Ying, **K. Zhang*** —— 同一个 Kaipeng Zhang / Chuanhao Li / Xiaojie Xu；
+  - **训练数据源 Sekai [17]** 结尾也是 *… Y. Jia, and **K. Zhang***；
+  - **Helios [32]**（抗漂移方法的出处）含 *Y. Yin, Z. Li*，与 Yuanyang Yin / Zhen Li 对得上。
+
+  **论文一处都没说明这些同源关系。** 📌 **相对地，唯一的定量依据 iWorld-Bench [5] 的作者名单（J. Fang, Y. Lei, Q. Wan, … et al.）与贡献者名单无明确重合，大概率是第三方** —— 但 "et al." 截断了名单，**我无法从 PDF 完全确认**。
+- ⚠️ **Table 3 里 WAN 2.2 是一整列，却不在 §4.1 的对比模型清单里**（清单只有 Cosmos / HunyuanVideo-1.5 / Yume 1.5 / Matrix-Game 2.0 / HY-World 1.5），**全文也没有它的引用**。
+- ⚠️ **Motion Smoothness 那一项的"赢"是 +0.0003**（0.9924 vs 0.9921），**在没有种子、没有重复、没有误差棒的情况下这个差距没有意义** —— 而正文把它叙述成 *"achieves the best results in both motion smoothness and trajectory accuracy"*。
+- ⚠️ **Matrix-Game 2.0 在 8 项里有 4 项垫底或近乎垫底**（Image Quality 0.4851 / Brightness 0.2963 / Color Temp 0.2937 / Memory Symmetry 0.3311）。对一个已发布的实时流式世界模型来说**低得不合常理，通常意味着配置或协议不匹配而非真实能力差距**，论文没有任何脚注解释。
+- ⚠️ **三个承重的方法组件完全没有引用**：**GEN3C**（整个空间记忆的出处）、**Frame Preservation**（时序记忆压缩的出处）、**Depth-Anything-3**（深度估计器）—— 三个名字都只在正文出现，**34 条参考文献里一条都没有**。
+- 📌 **正面：主表的 benchmark 大概率是第三方的**（iWorld-Bench）。
 - 📌 **正面：Table 3 的加粗诚实** —— Image Quality 那一行把加粗给了对手，正文也明说自己没拿到最高分。
 - 📌 **正面：声称有代码、项目页、视频三样齐全**，而且自我定位是 *"full-stack, open-source, and long-term project"*。
 
@@ -264,7 +306,7 @@ $$
 
 ## 9. 一句话总结
 
-**AlayaWorld 的核心是把交互式世界模型的视觉上下文做成一个预算固定的四路 prefix —— 钉在 RoPE 位置 0 的 sink 帧（训练时刻意取远帧，逼模型依赖相机信号而不是抄 sink）、6 帧压缩时序历史、最多 10 帧几何对齐的空间记忆、1 帧最近帧 —— 全部走 in-context token 前缀、过完整 self-attention 后整段切掉，于是每 chunk 计算量恒定、horizon 原则上无界。** 空间记忆沿用 GEN3C：贪心最大覆盖选帧 → forward splatting warp 到目标视角 → **coverage mask 当 self-attention key bias，让没观测过的区域被忽略而不是被信任**。抗漂移用 Helios 人工退化冷启动、再交给 **error bank 回放模型自己的重建残差**。蒸馏把 DMD + self-forcing++ + consistency 三项合成 `L_DMD + 0.5·L_cm`，**两个 score 靠同一 backbone 的 LoRA 开关提供**，30 步压到 4 步。iWorld-Bench 上 **8 项赢 7 项**，且三项拉开最大的恰是抗漂移类指标（Brightness 0.9492 / Color Temp 0.9379 / Sharpness 0.8361，次优分别是 0.8051 / 0.7819 / 0.6634），**唯一输的 Image Quality 论文如实承认**。⚠️ **但 "ablat" 与 "limitation" 全文各 0 次 —— 四路上下文、三个蒸馏项、两套抗漂移机制无一被单独验证**；**摘要把"efficient response"列为四大能力之一却没有任何延迟/FPS/GPU 数字**；主表在 480p（宣传是 540p/720p）且**对 benchmark 的 prompt 做了改写而 baseline 大概率没有**。
+**AlayaWorld 的核心是把交互式世界模型的视觉上下文做成一个预算固定的四路 prefix —— 钉在 RoPE 位置 0 的 sink 帧（训练时刻意取远帧，逼模型依赖相机信号而不是抄 sink）、6 帧压缩时序历史、最多 10 帧几何对齐的空间记忆、1 帧最近帧 —— 全部走 in-context token 前缀、过完整 self-attention 后整段切掉，于是每 chunk 计算量恒定、horizon 原则上无界。** 空间记忆沿用 GEN3C：贪心最大覆盖选帧 → forward splatting warp 到目标视角 → **coverage mask 当 self-attention key bias，让没观测过的区域被忽略而不是被信任**。抗漂移用 Helios 人工退化冷启动、再交给 **error bank 回放模型自己的重建残差**。蒸馏把 DMD + self-forcing++ + consistency 三项合成 `L_DMD + 0.5·L_cm`，**两个 score 靠同一 backbone 的 LoRA 开关提供**，30 步压到 4 步。iWorld-Bench 上 **8 项赢 7 项**，且三项拉开最大的恰是抗漂移类指标（Brightness 0.9492 / Color Temp 0.9379 / Sharpness 0.8361，次优分别是 0.8051 / 0.7819 / 0.6634），**唯一输的 Image Quality 论文如实承认**。⚠️ **但问题也集中**：**"ablat" 与 "limitation" 全文各 0 次**，四路上下文、三个蒸馏项、两套抗漂移机制无一被单独验证；**"有界"只覆盖了 DiT —— 空间记忆的 cache 单调增长且无 eviction，检索开销随 rollout 线性上升**；**摘要把"efficient response"列为四大能力之一却没有任何延迟/FPS/GPU 数字**（而每 chunk 真实成本是 4 步 DiT + VAE decode + DA3 深度 + 几何渲染 + VAE encode，论文只量化了第一项）；**backbone 规模 abstract 说 15B、§3 说 ~13B**；主表在 480p（宣传 540p/720p）且**对 benchmark 的 prompt 做了改写而 baseline 大概率没有**；**承诺的 WorldMark/Elo 人评零结果，而 WorldMark 的作者有六人就在本文贡献者名单里**。🔴 **另外我最初以为它把"DMD 时 scorer 看到什么历史"说清楚了 —— 细读后是错的**：散文括号写 "ground-truth context"，而 Eq. 7 把两个 score 都条件在同一个 `c_i` 上、`c_i` 又被定义为 `z_<i` 的函数，**和 Matrix-Game 3.5 一样公式与散文各说一套**。
 
 ---
 
@@ -274,7 +316,7 @@ $$
 |---|---|
 | **[PWM](../pwm/analysis.md)（同一个 Alaya Lab）** | 🔴 **直接下游** —— PWM 的笔记里明写「空间记忆**借用 AlayaWorld 的几何对齐空间记忆机制**（RGB+depth→3D pointcloud→reprojection→latent tokens）」。📌 **两篇合起来是一条清晰的演进**：AlayaWorld 把记忆做成有界上下文，PWM 再把「世界状态维护」整个抽出去交给确定性引擎 |
 | **[Matrix-Game 3.5](../matrix_game_35/analysis.md)** | 🔴 **空间记忆的正面对手**，同一类机制、四处实现全不同（见 [§3](#3-空间记忆与-matrix-game-35-的-patch-memory-正面对比)）。两篇互不引用 |
-| **[OPSD-V](../../video_generation/opsd_v/analysis.md)** | 📌 **DMD 时 scorer 上下文的处理实质相同** —— 都是「状态取自学生、上下文换成真值」。OPSD-V 讲得更细（显式 cache 表达式 + 保留最近一个学生 chunk 防止方向不可达），本篇只有一个括号但没有自相矛盾（见 [§5.2](#52--scorer-看到的历史第三种答案而且这次写清楚了)） |
+| **[OPSD-V](../../video_generation/opsd_v/analysis.md)** | 🔴 **同一个问题的三个答案里，只有 OPSD-V 是可复现的**。本篇散文说「ground-truth context + detached history」，看似与 OPSD-V 同解法，**但 Eq. 7 把两个 score 都条件在同一个 `c_i` 上、而 `c_i` 被定义为 `z_<i` 的函数 —— 公式与散文各说一套，和 Matrix-Game 3.5 同病**（见 [§5.2](#52--scorer-看到的历史公式与散文又一次对不上)） |
 | **[五篇横向对照](../../video_generation/dmd_few_step_ar/analysis.md)** | 📌 **它在「② 少步初始化要不要独立阶段」上是一个新形态**：既不是 ForgeWM 的独立一致性蒸馏阶段，也不是 SolarWM/Matrix-Game 3.5 的「合并进 teacher-forcing 阶段」，而是**把 consistency distillation 作为一项并进最后的 DMD 目标里**（`L_DMD + 0.5·L_cm`）。**这是第三种解法，同样零消融** |
 | [SolarWM](../solarwm/analysis.md) | 它的发布矩阵里列了 "AlayaWorld v1.1" 一行 |
 | [ABot-World-0](../abot_world_0/analysis.md) / [EVOKE](../evoke/analysis.md) / [ReWorld](../../video_generation/reworld/analysis.md) | 长时记忆的其它路线：有界 KV cache + 身份记忆 / Pi3X 点云 World State Bank / landmark bank。📌 **加上本篇的"四路有界 prefix"和 MG3.5 的"patch 画布"，仓库里长时记忆已经有五条不同路线，而彼此之间没有任何定量对照** |
