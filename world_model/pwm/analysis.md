@@ -123,7 +123,8 @@ I^{(n)} = G_{\theta,\phi,\psi}\!\left(C^{(n)},\; M^{\text{ctrl},(n)},\; \mathcal
 $$
 
 - **时序历史** `H_temp`：多尺度 latent 历史（recent/mid/long 三档分辨率递减），训练时随机降质（加噪、特征损坏、部分丢弃）提升鲁棒性，`I_0` 作为永久 anchor。
-- **空间记忆** `H_spa`：借用 AlayaWorld 的几何对齐空间记忆机制，将已生成 RGB 帧用深度 + 相机参数提升到世界空间，按目标视角检索并重投影为 spatial latent tokens 用于条件化。这使系统能记住被遮挡或离开画面的实体外观。
+- **空间记忆** `H_spa`：借用 [AlayaWorld](../alayaworld/analysis.md) 的几何对齐空间记忆机制，将已生成 RGB 帧用深度 + 相机参数提升到世界空间，按目标视角检索并重投影为 spatial latent tokens 用于条件化。这使系统能记住被遮挡或离开画面的实体外观。
+  📌 **上游细节见 [AlayaWorld 笔记 §3](../alayaworld/analysis.md)**：那边沿用 **GEN3C**，贪心最大覆盖选**最多 10 帧**、forward splatting warp 到目标视角、**coverage mask 当 self-attention key bias**（让没观测过的区域被忽略而不是被信任），深度用 **Depth-Anything-3**。
 
 ![Fig 3: PWM 架构总览](./figures/fig3_architecture.png)
 

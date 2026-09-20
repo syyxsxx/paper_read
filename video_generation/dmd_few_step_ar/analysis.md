@@ -157,6 +157,14 @@
 
 📌 **按篇数 2:1，按证据仍是 1:0** —— ForgeWM 依然是唯一一篇为这个问题做过带置信区间对照的。
 
+⚠️ **补记：[AlayaWorld](../../world_model/alayaworld/analysis.md) 给出了第三种形态。** 它既不是 ForgeWM 的独立一致性蒸馏阶段，也不是 SolarWM / Matrix-Game 3.5 的"合并进 teacher-forcing 阶段"，而是**把 consistency distillation 当作一项并进最后的 DMD 目标里**：
+
+$$
+\mathcal{L} = \mathcal{L}_{\mathrm{DMD}} + 0.5\,\mathcal{L}_{\mathrm{cm}}
+$$
+
+（`L_cm` 是在 50 级噪声网格上对自己 EMA 副本的 Huber 一致性损失，另配 self-forcing++ 的自 rollout）。**所以"少步化"这件事有三种放法：独立阶段 / 并进因果化阶段 / 并进 DMD 阶段 —— 而后两种都零消融。**
+
 📌 **但这第三票强化了本节开头那个更细的读法**：**Matrix-Game 3.5 把少步能力显式写进了 Stage 1 的目标**（PFM 直接在少步设定下约束干净预测），而不是指望 ③ 的 DMD 顺手解决。**三篇合起来指向同一件事 —— 少步能力必须被显式训进去；分歧只在它要不要占一个独立阶段。**
 
 ### 4.2 DMD 该不该是最后一个阶段

@@ -365,7 +365,20 @@ DMD 的梯度本质是两个 score 之差 `∇L ∝ s_fake − s_real`。**要�
 
 | | 本篇的做法 | 仓库里的对照 |
 |---|---|---|
-| **长时记忆的表示** | **patch 级**（几何检索 + 隐式注入） | [EVOKE](../evoke/analysis.md) 用 Pi3X **点云** World State Bank（存几何）；[ReWorld](../../video_generation/reworld/analysis.md) 用 **landmark bank** + 混合逐 head 注意力窗；[ABot-World-0](../abot_world_0/analysis.md) 用**有界 KV cache + 参考身份记忆**（存外观）。📌 **本篇是第四条路线，而且是唯一一条把粒度定在 patch 的** |
+| **长时记忆的表示** | **patch 级**（几何检索 + 隐式注入） | 🔴 **最直接的对手是 [AlayaWorld](../alayaworld/analysis.md)** —— 同样是"把历史观测按几何对齐到当前视角"，但**四处实现全不同**（见下）；此外 [EVOKE](../evoke/analysis.md) 用 Pi3X **点云** World State Bank（存几何）、[ReWorld](../../video_generation/reworld/analysis.md) 用 **landmark bank** + 混合逐 head 注意力窗、[ABot-World-0](../abot_world_0/analysis.md) 用**有界 KV cache + 参考身份记忆**（存外观）|
+
+### 🔴 与 [AlayaWorld](../alayaworld/analysis.md) 的空间记忆逐项对比（两篇互不引用）
+
+| | **Matrix-Game 3.5（本篇）** | **AlayaWorld** |
+|---|---|---|
+| **记忆单元** | **latent patch**（散射进对齐画布） | **整帧**（warp 成一张对齐图再 VAE 编码） |
+| **渲染方式** | 反投影 + 视锥查询 + **z-buffer 散射** | **forward splatting**（逐像素最近深度） |
+| **空洞怎么办** | 🔴 **直接从 token 序列丢掉**（*"avoids doubling the sequence length"*） | 🔴 **保留占位，但用 coverage mask 当 attention key bias 屏蔽掉** |
+| **预算** | 每 4 帧 query 组最多 5 个历史候选 | **最多 10 帧**，贪心最大覆盖选 |
+| **位置编码** | 借目标帧 RoPE 时间戳 + **亚网格精度的分数空间坐标** | 放在目标的 RoPE 坐标上 |
+| **血统** | **MosaicMem** | **GEN3C** |
+
+📌 **最值得记的是"空洞怎么处理"这一行**：本篇删 token（序列长度随覆盖率浮动，省下的正是"不让序列翻倍"），AlayaWorld 留 token 但屏蔽注意力（序列长度恒定，代价是空洞仍占预算）。**两种做法都达到了"只在有可靠几何证据处复用记忆"，但对序列预算的处理相反，没人比过。**
 | **相机/动作注入** | **Warped PRoPE**（折进 attention） | 与 [SolarWM](../solarwm/analysis.md) 的 fused-PRoPE **同机制、同源（MosaicMem）**；[ReWorld](../../video_generation/reworld/analysis.md) 的 PM-RoPE / E-PRoPE 同族；而 [ABot-World-0](../abot_world_0/analysis.md) **明确拒绝**相机位姿、改用 8 维键盘加性注入 |
 
 ⚠️ **控制信号的路线之争仍未裁决**：本篇与 SolarWM/ReWorld 以**标定相机轨迹**为核心，ABot 的理由是"长 rollout 累积位姿会漂出训练分布"。📌 **但本篇给了一个 ABot 没考虑到的反驳角度** —— PRoPE 用的是**相对投影 `M = P_i P_j^{-1}`**，而相对量天然不随全局漂移累积。**这条值得记，但两边都没做过对照实验。**

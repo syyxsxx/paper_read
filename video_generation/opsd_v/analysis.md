@@ -409,7 +409,21 @@ A: **解决的是"监督方向"与"监督位置"的错配——这是 on-policy 
 
 ⚠️ **但 Matrix-Game 3.5 那一行有歧义**：它的 Eq (9) 把学生与 teacher 都条件在**同一个**在线条件 `Ĥ_i^θ` 上（正文还强调 "under this **shared** condition"），而紧接着的散文说 scorer 记忆是**固定**的 —— **两者不可能同时成立，而论文没有把实际优化的目标写成公式。** 📌 **本篇在这一点上比它清楚得多**：`h^s_i` 与 `h^t_i` 两条 cache 都有显式表达式，`i=7` 还给了逐项对照。
 
-⚠️ **两篇互不引用，哪种解法更好也没人比过。**
+📌 **补记（2026-09）：第三篇给出了与本篇实质相同的答案。** [AlayaWorld](../../world_model/alayaworld/analysis.md) 在它的 self-forcing++ 蒸馏里写：
+
+> *"the student rolls out its own multi-chunk trajectories and is scored against the teacher along that self-generated path (**with ground-truth context and detached history**)."*
+
+**即「状态取自学生、上下文换成真值」—— 与本篇是同一个解法。** 三篇排在一起：
+
+| | teacher/scorer 打分时的上下文 | 随 rollout 前进吗 |
+|---|---|---|
+| **本篇（OPSD-V）** | **真实视频 chunk 逐个填充**，只留最近一个学生 chunk | ✅ 前进 |
+| **AlayaWorld** | **ground-truth context**（+ detached history） | ✅ 随自生成路径前进 |
+| **Matrix-Game 3.5** | ⚠️ 公式说共享在线条件、散文说冻在初始记忆 —— **自相矛盾** | ❌（按散文口径） |
+
+⚠️ **但 AlayaWorld 缺了本篇那个关键细节**：它没说要不要保留最近一个学生 chunk。**若上下文全是真值，按本篇的论证 teacher 就成了 fully teacher-forced oracle，给出的方向对学生不可达** —— AlayaWorld 没有讨论这个风险。
+
+⚠️ **三篇互不引用，哪种解法更好也没人比过。**
 
 ⚠️ **但这套论证里有个洞**：**"AR-consistent teacher cache"这个命名级贡献本身零消融**。既没有"全部换真实 chunk"的对照，也没有"完全不换"（纯自蒸馏）的对照。**所以"保留最近一个"这个具体选择有多重要，目前只有论证没有数据。**
 
