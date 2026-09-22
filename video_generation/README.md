@@ -78,6 +78,7 @@
 | [forgewm](./forgewm/analysis.md) | ForgeWM: Progressive Causal Training for Few-Step Action-Conditioned Video World Models | few-step 因果动作条件世界模型(四阶段渐进) | 港中文+腾讯 PCG+复旦+上海 AI Lab, 2026-08 | [code](https://github.com/asdfo123/ForgeWM) | ✅ |
 | [dmd_few_step_ar](./dmd_few_step_ar/analysis.md) | **横向对照**：五篇「给 DMD few-step 因果 AR 打补丁」的工作 | 跨篇综合(ForgeWM / Mask Forcing / OPSD-V / ABot-World-0 / SolarWM) | 本仓库整理, 2026-09 | — | ✅ |
 | [vdn](./vdn/analysis.md) | Video DeltaNet: A Video-Native Hybrid Attention for Livestream Video Generation | 视频扩散混合 attention 加速(局部 Softmax + 帧级 delta 线性) | UC Berkeley+Impossible+UT Austin, 2026-09 | [github](https://github.com/OpenVDN/vdn-minimax-h3) | ✅ |
+| [videogen_agent](./videogen_agent/analysis.md) | VideoGen-Agent: Reinforcing Video Generation Agents | 多任务 Agentic GRPO 训练 VLM agent 编排外部工具做视频生成(6 类任务) | Princeton+Stanford+UC Davis+CUHK MMLab, 2026-09 | [project](https://andyca111.github.io/VideoGen_Agent) | ✅ |
 | self_forcing | Self Forcing: Bridging the Train-Test Gap in Autoregressive Video Diffusion | 长 T2V | NeurIPS 2025 (Adobe) | [github](https://github.com/guandeh17/Self-Forcing) | ⏳ |
 | causvid | From Slow Bidirectional to Fast Autoregressive Video Diffusion Models | 短 T2V | CVPR 2025 (MIT/Adobe) | [github](https://github.com/tianweiy/CausVid) | ⏳ |
 
