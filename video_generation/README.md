@@ -80,6 +80,7 @@
 | [vdn](./vdn/analysis.md) | Video DeltaNet: A Video-Native Hybrid Attention for Livestream Video Generation | 视频扩散混合 attention 加速(局部 Softmax + 帧级 delta 线性) | UC Berkeley+Impossible+UT Austin, 2026-09 | [github](https://github.com/OpenVDN/vdn-minimax-h3) | ✅ |
 | [videogen_agent](./videogen_agent/analysis.md) | VideoGen-Agent: Reinforcing Video Generation Agents | 多任务 Agentic GRPO 训练 VLM agent 编排外部工具做视频生成(6 类任务) | Princeton+Stanford+UC Davis+CUHK MMLab, 2026-09 | [project](https://andyca111.github.io/VideoGen_Agent) | ✅ |
 | [recency_forcing](./recency_forcing/analysis.md) | Recency Forcing: Bridging the Long-Horizon Gap in Autoregressive Video Generation | 长视频 AR:给 attention 的 history 段加随 denoising timestep 变化的衰减 bias,零推理开销 | Qualcomm AI Research, 2026-09 | [arXiv](https://arxiv.org/abs/2609.19729) | ✅ |
+| [avatar_forever](./avatar_forever/analysis.md) | Avatar-Forever: Decoupled Parallel Training for High-Quality Real-Time Infinite Avatars | 音频驱动实时数字人:全参 DMD 管少步、RRT LoRA 管长时,部署时权重相加;ForeverCache 推理缓存(近似) | PolyU + ByteDance + AMD, 2026-08 | [project](https://leeruibin.github.io/avatarforever-project-page/) | ✅ |
 | self_forcing | Self Forcing: Bridging the Train-Test Gap in Autoregressive Video Diffusion | 长 T2V | NeurIPS 2025 (Adobe) | [github](https://github.com/guandeh17/Self-Forcing) | ⏳ |
 | causvid | From Slow Bidirectional to Fast Autoregressive Video Diffusion Models | 短 T2V | CVPR 2025 (MIT/Adobe) | [github](https://github.com/tianweiy/CausVid) | ⏳ |
 

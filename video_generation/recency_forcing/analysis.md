@@ -186,6 +186,8 @@ $$
 1. **数值稳定性。** `w_j = exp(B_{i,j})` 在远帧处可以非常小，若窗口内所有 `w_j` 都趋于 0，分母 `Σ_j s_j w_j` 会下溢。**幸好 global 与 recent 段的 `w = 1` 不衰减，分母因此有下界** —— 这给"global/recent 不施加 TRB"提供了一个论文没提的**数值上的**必要性，而不只是建模上的。
 2. **`w` 其实依赖 `(i, j)` 而不只是 `j`。** 论文的推导开头写的是 *"For a single query frame `q_i`"* —— 对固定的 query 帧，`Δ_{i,j}` 才退化成只随 `j` 变。所以 **`Ṽ` 要按 query 帧重建**。在 AR 逐 chunk 推理里这天然成立（每次只有一个 query chunk），**但这意味着 BAR 不能直接用在一次前向里含多个 query 帧位置的场景**。论文没说明这个前提。
 
+📌 **补记（2026-09）：仓库里出现了 BAR 的反例。** [Avatar-Forever](../avatar_forever/analysis.md) 的 **ForeverCache** 同样打着"推理期去冗余、不改权重"的旗号 —— 每个 chunk 只在第一个去噪步算一次历史特征、后面复用 —— **但它不是恒等变换**：窗口内是双向注意力，历史 token 的深层特征本该随当前 chunk 变化，ForeverCache 把它们冻在了当前 chunk 还是纯噪声的那一刻。**论文正文没说，开源代码的 docstring 自己写了 *"This is an approximation"***，Table 1 里 LLM Overall 也因此 6 / 6 格下降。**BAR 能做到精确，是因为它动的是一个与内容无关的位置项；ForeverCache 近似，是因为它冻结的是一个与内容有关的中间量 —— 判断一个"零开销"变换是否精确，就看被搬动的那一项依不依赖当前输入。**
+
 ---
 
 ## 6. 实验

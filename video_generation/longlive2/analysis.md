@@ -574,3 +574,19 @@ error_recycling:
 📌 **两条路线是正交的**:LongLive 2.0 用**真长视频 teacher-forcing 直接微调 + Multi-Shot Sink**(改训练数据与 sink 结构),Recency Forcing 完全不碰训练数据长度,**只给 attention 的 history 段加一个随 denoising timestep 变化的衰减 bias**。⚠️ **没人试过叠加。**
 
 📌 另可注意:Recency Forcing 在定性对比里点名 LongLive 的失效模式是 ***"scene repetition"***(场景重复,论文用红框标出),并把成因归给**它的 global sink 机制** —— 这与本篇"Multi-Shot Attention Sink 保证跨镜头一致性"的设计意图正好是一体两面,⚠️ 但对方没有给出这个归因的定量证据。
+
+---
+
+## 补记(2026-09):一个分工互换的"镜像"
+
+[Avatar-Forever](../avatar_forever/analysis.md)(PolyU + ByteDance,音频驱动数字人,2026-08)同样从"流水线太重"出发做减法,但**分工与本篇正好互换**:
+
+| | 全参训练负责 | LoRA 旁路负责 |
+|---|---|---|
+| **LongLive 2.0(本篇)** | **长时**(真长视频 teacher-forcing AR 微调) | **少步**(DMD-LoRA,4 → 2 步) |
+| **Avatar-Forever** | **少步**(全参 DMD,30 → 4 步,不带任何 rollout) | **长时**(RRT LoRA,rank 128) |
+
+📌 **这意味着"两种能力分开训、推理时组合"这个结构,本篇比 Avatar-Forever 早三个月就有了。** Avatar-Forever 引用了本篇([22]),但只在引言里当作"误差累积"的例子,没有把它当"解耦"的前作讨论。
+
+⚠️ **本笔记 §二 的表格写的是"旁路:同基础模型 → DMD(仅 LoRA)"——这里的"同基础模型"是指原始 Wan base,还是长视频微调之后的 AR 模型,需要回原文确认 `[待补]`。** 若是前者,本篇就是完全意义上的并行训练;若是后者,则是"主训练 → LoRA 旁路"的串行,只是旁路可插拔。
+
