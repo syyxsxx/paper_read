@@ -318,6 +318,7 @@ $$
 | **[Matrix-Game 3.5](../matrix_game_35/analysis.md)** | 🔴 **空间记忆的正面对手**，同一类机制、四处实现全不同（见 [§3](#3-空间记忆与-matrix-game-35-的-patch-memory-正面对比)）。两篇互不引用 |
 | **[OPSD-V](../../video_generation/opsd_v/analysis.md)** | 🔴 **同一个问题的三个答案里，只有 OPSD-V 是可复现的**。本篇散文说「ground-truth context + detached history」，看似与 OPSD-V 同解法，**但 Eq. 7 把两个 score 都条件在同一个 `c_i` 上、而 `c_i` 被定义为 `z_<i` 的函数 —— 公式与散文各说一套，和 Matrix-Game 3.5 同病**（见 [§5.2](#52--scorer-看到的历史公式与散文又一次对不上)） |
 | **[五篇横向对照](../../video_generation/dmd_few_step_ar/analysis.md)** | 📌 **它在「② 少步初始化要不要独立阶段」上是一个新形态**：既不是 ForgeWM 的独立一致性蒸馏阶段，也不是 SolarWM/Matrix-Game 3.5 的「合并进 teacher-forcing 阶段」，而是**把 consistency distillation 作为一项并进最后的 DMD 目标里**（`L_DMD + 0.5·L_cm`）。**这是第三种解法，同样零消融** |
+| **[Recency Forcing](../../video_generation/recency_forcing/analysis.md)** | ⚠️ **对本篇最核心的设计给出了反向证据**。本篇把上下文做成**有界四路 prefix**，即硬性截断；Recency Forcing 的 Table 4 恰恰在测这件事：同一 backbone、同一评测下，**硬截断上下文（`L_attention=9`）VBench-Long Quality 81.10，连续衰减（保留全上下文 + 远帧权重压到近 0）84.17，差 3.07 分**。它的论点是「截断把模型仍在用的时序信息也扔了」。⚠️ **两篇任务、backbone、评测全不同，不能直接比** —— 但这是仓库里第一次有人用实验数据碰这个取舍，而本篇零消融，无从辩护 |
 | [SolarWM](../solarwm/analysis.md) | 它的发布矩阵里列了 "AlayaWorld v1.1" 一行 |
 | [ABot-World-0](../abot_world_0/analysis.md) / [EVOKE](../evoke/analysis.md) / [ReWorld](../../video_generation/reworld/analysis.md) | 长时记忆的其它路线：有界 KV cache + 身份记忆 / Pi3X 点云 World State Bank / landmark bank。📌 **加上本篇的"四路有界 prefix"和 MG3.5 的"patch 画布"，仓库里长时记忆已经有五条不同路线，而彼此之间没有任何定量对照** |
 

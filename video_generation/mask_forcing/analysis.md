@@ -465,6 +465,7 @@ A: **四篇都在给"DMD 蒸馏出来的 few-step 因果 AR 视频模型"打补�
 A: **三件事。**
 
 1. **它是真正的零成本插件**——不加前向、不加真实数据、不加训练阶段，直接接在现有 self-rollout DMD 训练里。Algorithm 1 显示每个 chunk 只有一次前向（`j=s`）带梯度，其余全部 detach，**显存和计算开销基本不变**。这是它最扎实的卖点。
+   📌 **补记（2026-09）：仓库里出现了第二个"零成本插件"，而且和它正交** —— [Recency Forcing](../recency_forcing/analysis.md) 同样不加数据、不加训练阶段，但改的是**另一层**：本篇改的是 **DMD rollout 时往输入注入什么**（掩码低噪 token），它改的是 **attention 怎么读上下文**（给 history 段加随 timestep 变化的 pre-softmax 衰减 bias）。**两者理论上可以直接叠加，没人试过。** 成本也是一个量级：它的 training-based 模式只要 12 小时 / 4×H100 微调 DMD 阶段，training-free 模式甚至零训练。
 2. **α 和 Δ 需要自己重调。** 论文的 α=0.2 / Δ=250 是在 Self Forcing + chunk-wise + 100-prompt set 上选的，**没有验证过能否迁移到其它 baseline 或设置**。而且 Δ=450 在两个指标上并不比 250 差（9.98/80 vs 9.84/82），**选点本身就有余地**。
 3. ⚠️ **关键超参大量缺失且无代码**：learning rate、optimizer、batch size、CFG scale、critic 更新频率、`t_min` 实际数值、GPU 型号全部没给，只有 project page。**复现需要自己补齐这些。**
 

@@ -206,6 +206,16 @@ $$
 
 ---
 
+### 🔴 补记（2026-09）：一种不在这五篇坐标系里的打法
+
+[Recency Forcing](../recency_forcing/analysis.md)（Qualcomm）同样是挂在 DMD few-step 因果 AR 上的补丁，**但它一个字没动这五篇争的那几件事** —— 不改蒸馏目标、不改 rollout 构造、不改阶段划分、不动 teacher/scorer 的上下文。**它只改 attention 从上下文读取时的权重分配**：给 history 段加一个非正的、随 denoising timestep 变化的 pre-softmax bias，让远帧在被 KV cache 逐出之前权重已近乎 0。
+
+📌 **它对这五篇最直接的贡献是给了一个此前没人量过的数**：**硬截断上下文 vs 连续衰减上下文，在同一 backbone 同一评测下差 3.07 分**（VBench-Long Quality 81.10 vs 84.17，50 条互斥 prompt）。五篇里凡是用固定窗口/硬性驱逐的（[ABot-World-0](../../world_model/abot_world_0/analysis.md) 的有界 KV cache、[SolarWM](../../world_model/solarwm/analysis.md)），**这个数都直接相关，而此前没有任何一篇测过**。
+
+⚠️ **它自称"与三大家族正交、可叠加"，但零组合实验** —— 所以"能不能和这五篇叠"仍然是开放的。
+
+---
+
 ## 5. 五篇共有的方法学问题
 
 ### 5.1 训练时长 vs 评测时长

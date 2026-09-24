@@ -117,9 +117,9 @@ $$
 具体推导(论文 Eq 9-10):对 interleaved 序列里的索引 i,
 
 $$
-p(i) = \lfloor i / 2L_{\text{loc}} \rfloor \quad (\text{在哪个 rank 段}) \\
-r(i) = i \bmod 2L_{\text{loc}} \quad (\text{rank 段内偏移}) \\
-t(i) = p(i) \cdot L_{\text{loc}} + (r(i) \bmod L_{\text{loc}}) \quad (\text{真实时间位置})
+p(i) = \lfloor i / 2L_{\text{loc}} \rfloor \quad (\text{rank-segment index}) \\
+r(i) = i \bmod 2L_{\text{loc}} \quad (\text{offset within segment}) \\
+t(i) = p(i) \cdot L_{\text{loc}} + (r(i) \bmod L_{\text{loc}}) \quad (\text{true temporal position})
 $$
 
 判断 i 是 clean 还是 noisy:`r(i) < L_loc` 是 clean,`r(i) ≥ L_loc` 是 noisy。
@@ -129,9 +129,9 @@ $$
 M_{\text{nat}}(i, j) = M_{\text{TF}}(\pi(i), \pi(j))
 $$
 
-其中 $\pi$ 把 interleaved 索引映射回 logical (clean/noisy, 时间位置)。
+其中 `π` 把 interleaved 索引映射回 logical (clean/noisy, 时间位置)。
 
-**关键**:$\pi$ 从来不 materialize 在 Q/K/V 张量上,只是在 mask predicate 里用整数运算算一下。`flex_attention` 把这个 predicate 编译进融合 kernel,执行起来跟 dense attention 一样快。
+**关键**:`π` 从来不 materialize 在 Q/K/V 张量上,只是在 mask predicate 里用整数运算算一下。`flex_attention` 把这个 predicate 编译进融合 kernel,执行起来跟 dense attention 一样快。
 
 → **改的是 mask 函数,不改 attention 实现**。一行 flex_attention call,mask 是 Python 函数,JIT 编译。
 
@@ -555,3 +555,22 @@ error_recycling:
 > **LongLive 2.0 用 NVFP4 量化 + Balanced 序列并行 把长视频 teacher-forcing AR 训练做得足够便宜,跳过了 CausVid/Self-Forcing 必须的 "ODE init + 中间 DMD + 长 tuning" 多阶段流程,直接在双向 Wan 上一次性微调成"长 + 多镜头 + AR" 模型。少步数能力通过纯 LoRA 旁路加上;推理用 Multi-Shot Attention Sink (全局 sink + 每镜头 sink) 保证跨镜头视觉一致性,配合异步流式 VAE decode 实现 45.7 FPS 端到端实时长视频生成。**
 
 附:与 Self-Forcing 的根本分歧是"用 self-rollout 解 exposure bias"vs"用真长视频数据 + error recycling 解 exposure bias"——前者算法巧妙,后者工程实在。
+
+---
+
+## 补记(2026-09):它在第三方对照里是最难缠的那个
+
+[Recency Forcing](../recency_forcing/analysis.md)(Qualcomm)把 LongLive 当主要对手,在两张主表和人评里都测了,结果是**唯一一个逼近它的方法**:
+
+| | LongLive | Recency Forcing | 谁赢 |
+|---|---|---|---|
+| VBench 短视频 Quality | **86.97** | 86.20 | **LongLive** |
+| VBench 短视频 Total | 84.87 | **85.08** | Recency |
+| VBench-Long 60s Quality | 81.98 | **84.02** | Recency(+2.04) |
+| VBench-Long Motion Smoothness | **98.75** | 98.00 | **LongLive** |
+| VBench-Long Aesthetic | **61.48** | 61.31 | **LongLive** |
+| 人评胜率(对方视角) | — | 59.7%–67.2% | Recency,但这是它全场最低的一列 |
+
+📌 **两条路线是正交的**:LongLive 2.0 用**真长视频 teacher-forcing 直接微调 + Multi-Shot Sink**(改训练数据与 sink 结构),Recency Forcing 完全不碰训练数据长度,**只给 attention 的 history 段加一个随 denoising timestep 变化的衰减 bias**。⚠️ **没人试过叠加。**
+
+📌 另可注意:Recency Forcing 在定性对比里点名 LongLive 的失效模式是 ***"scene repetition"***(场景重复,论文用红框标出),并把成因归给**它的 global sink 机制** —— 这与本篇"Multi-Shot Attention Sink 保证跨镜头一致性"的设计意图正好是一体两面,⚠️ 但对方没有给出这个归因的定量证据。
