@@ -13,3 +13,4 @@
 | [decoupling_kl](./decoupling_kl/analysis.md) | Decoupling KL and Trajectories: A Unified Perspective for SFT, DAgger, Offline RL, and OPD in LLM Distillation | 论文 | 宁波东方理工+港理工+上交+港科广, 2026-05 | [arXiv](https://arxiv.org/abs/2605.16826) | ✅ |
 | [opsa](./opsa/analysis.md) | Does On-Policy Distillation Really Distill? From Noisy Teacher to Self-Improvement | 论文 | Purdue University, 2026-08 | [arXiv](https://arxiv.org/abs/2608.31046) | ✅ |
 | [opsd](./opsd/analysis.md) | Self-Distilled Reasoner: On-Policy Self-Distillation for Large Language Models | 论文 | arXiv 2026-01, Siyan Zhao 等 | [arXiv](https://arxiv.org/abs/2601.18734) | ✅ |
+| [bdh_cq](./bdh_cq/analysis.md) | BDH-CQ: In-Context Learning with Recurrent Latent Reasoning | 论文 | Pathway+Bielik AI+NYU, 2026-08 | [arXiv](https://arxiv.org/abs/2608.09888) | ✅ |
