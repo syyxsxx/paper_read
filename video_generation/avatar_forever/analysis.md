@@ -435,9 +435,10 @@ $$
 | **[TeaCache](../../inference_acceleration/teacache/analysis.md)** | 同属"跨去噪步复用计算"。TeaCache 在相邻 timestep 之间**复用上一步的整网输出**，并用**累积相对 L1 距离与阈值 δ** 决定何时重算；ForeverCache 复用的是历史 token 的逐层特征，**固定在每个 chunk 的第一步算一次**。**两者都是近似**，但 TeaCache 有显式的误差判据与可调阈值，ForeverCache 没有 |
 | [Mask Forcing](../mask_forcing/analysis.md) / [OPSD-V](../opsd_v/analysis.md) | 都在 DMD 的 self-rollout 里做文章（改 rollout 注入什么 / 改 teacher 看到的上下文）；本篇则把 rollout 从 DMD 里**整个拿走** |
 | [decoupling_kl](../../llm/decoupling_kl/analysis.md) | 用它的"前缀来源 × 标签来源"看 RRT：前缀取自学生（rollout），**标签却取自原轨迹而非"专家在学生状态上的动作"**，所以不是 DAgger（§3.2） |
+| **[Vidu S2](../vidu_s2/analysis.md)**（清华 + 生数，2026-09） | 📌 **同为实时交互数字人**：Vidu S2-Avatar 是 720p、25–42 FPS，训练用 Self-Replay Forcing（让 DMD 梯度跨 chunk 传播），推理栈含 W8A8 量化与多卡 Ulysses 式上下文并行；本篇是 768×512、单卡 H100 27.2 FPS，训练把少步与长时拆开。⚠️ 两篇共同的对照只有 LiveAvatar，评测集也不同（StreamAV-Bench vs TalkVid/EMTD/HDTF），**数字不能直接比**；Vidu S2 的 25–42 FPS 是几张卡测得的，那篇笔记没写 `[待补]` |
 | [JoyAI-Echo](../joyai_echo/analysis.md) | 同为长时音视频联合生成（我那篇笔记判断其底层是 LTX-2，原论文未明说），走的是跨模态记忆 + SFT + RLHF + DMD 的多阶段路线 |
 
-⚠️ **仓库缺口**：本篇对照的四个 baseline（OmniAvatar、InfiniteTalk、LiveAvatar、SoulX-FlashTalk）以及它点名的串行代表 StreamAvatar、LPM 1.0 都没有笔记；**这是仓库里第一篇音频驱动数字人**。
+⚠️ **仓库缺口**：本篇对照的四个 baseline（OmniAvatar、InfiniteTalk、LiveAvatar、SoulX-FlashTalk）以及它点名的串行代表 StreamAvatar、LPM 1.0 都没有笔记；**这是仓库里第一篇音频驱动数字人**（写于 2026-09-24；之后合作者加入了 [Vidu S2](../vidu_s2/analysis.md)，见上表）。
 
 ---
 
