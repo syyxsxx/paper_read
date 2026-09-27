@@ -241,3 +241,92 @@ BDH-CQ 是第一个把 inference-time demonstration 绑定（循环记忆 S_t，
 
 ## Q&A
 
+**Q: Looped Transformers 讲的啥？**
+
+A: 核心思想是把一个 Transformer 块的权重共享，然后反复执行 R 次，而不是用 R 组独立权重的 L 层网络。
+
+```
+标准 Transformer：x → Layer_1 → Layer_2 → ... → Layer_L → output（各层独立权重）
+Looped Transformer：x → Block → Block → ... → Block → output（同一套权重执行 R 次）
+```
+
+四个主要动机：① **推理时可伸缩**——增加 loop 次数 R 相当于花更多"思考时间"，无需换模型；② **参数效率**——参数量等于一个 Block，却获得 R 层深度的表达力；③ **理论保证**——Giannou et al. 2023 证明循环 Transformer 图灵完备，固定 L 层的标准 Transformer 做不到；④ **隐式迭代精化**——每次 loop 在前一次输出基础上继续细化，类似"想了又想"。
+
+与 BDH-CQ 的关系：BDH-CQ 的 latent workspace 迭代 `H_{r+1} = F_θ(H_r, S_K)` 正是 Looped Transformer 思想的实例——同一套权重 `F_θ` 反复应用，每次 cross-attend 同一个记忆 `S_K`，中间状态从不 verbalize。
+
+主要局限：梯度要穿过 R 次相同权重，等效于对同一块反向传播 R 次，梯度爆炸/消失双向压力；实际上很难诊断模型是"真的在利用迭代"还是"绕过迭代直接 memorize"。
+
+---
+
+**Q: Recurrent Memory 是什么？为什么用它而不用 KV Cache？**
+
+A: Recurrent memory 的核心是用一个**固定大小**的状态矩阵 S 把历史信息压缩下来，每读入新内容就原地更新，而不是把所有历史 token 留在序列里：
+
+```
+KV Cache：    history = [token_1, ..., token_t]  ← 随时间线性增长，O(t) 计算/显存
+Recurrent S： S_t（固定大小）← S_{t+1} = Update(S_t, x_t)，O(1) 增量计算
+```
+
+选 recurrent memory 而非 KV Cache 有三层原因，不只是"序列太长"：
+
+1. **序列长度**：ARC-AGI 场景下 8 个 demonstration × 每格几百 token = 数千 token context，recurrent S 把这些压进固定矩阵，绕开线性增长。
+
+2. **更重要——不需要 backward pass**：HRM/TRM 等竞争方案也能处理 demonstration，但它们在测试时对每个任务跑 gradient descent（本质上是小规模 fine-tune），慢且昂贵（$1.48/task）。BDH-CQ 的 `S_t = U_θ(S_{t-1}, D_t)` 只做 forward pass，推理完即得绑定好的任务记忆（$0.00070/task）。
+
+3. **query 阶段计算量恒定**：KV Cache 方案下 8 个 demonstration 的 attention 计算量是 1 个的 8 倍；recurrent S 方案下无论 demonstration 数量多少，query 阶段只 attend 固定大小的 S，计算量不变。
+
+代价：压缩有损——8 个 demonstration 挤进一个矩阵，信息会互相干扰，这也是 BDH-CQ 只有 29.5% 而 full-context 大模型能到 90%+ 的根本原因。
+
+---
+
+**Q: Recurrent Memory 具体怎么做？LLM 里的 Reasoning 怎么理解？**
+
+A: **Recurrent Memory 的具体机制（以 Linear Attention 为例）**
+
+标准 attention 中 `K_{1..t}` 和 `V_{1..t}` 随时间增长，无法压缩。把 `softmax(qk^T)` 换成核函数 `φ(q)·φ(k)`（如 `elu(x)+1`）后，利用矩阵乘法结合律可改写成循环形式：
+
+```python
+S = zeros(d_k, d_v)    # 固定大小状态矩阵
+z = zeros(d_k)          # 归一化因子
+
+for each token t:
+    S = S + φ(k_t).T @ v_t   # 更新：加一个 rank-1 外积
+    z = z + φ(k_t)
+    out_t = φ(q_t) @ S / (φ(q_t) @ z)   # 查询：一次矩阵乘
+```
+
+S 的物理含义：所有历史 (key, value) 关联的叠加。查询时 φ(q) 在 S 里"软查表"——相似 key 对应的 value 权重更高。S 的容量上限是 `min(d_k, d_v)` 个正交记忆，历史太长时信息互相覆盖。
+
+实际系统的应对方案：
+
+| 方法 | 做法 | 代表 |
+|------|------|------|
+| 衰减因子 | `S_t = λ·S_{t-1} + k_t^T·v_t`，旧记忆自然淡出 | RWKV, Mamba |
+| 门控 | 学一个 erase gate 决定写之前先擦什么 | GLA, HGRN |
+| Chunk + 精确 Attention | 块内精确 softmax，块间用 S 传递 | RetNet, Mamba-2 |
+
+BDH-CQ 的 S_t 原理相同，具体更新规则保密。
+
+**LLM 里的 Reasoning**
+
+核心矛盾：标准 Transformer 一次 forward pass 计算量固定，但难题需要更多计算。Reasoning 的三条路线：
+
+```
+路线 A：CoT——用 token 换计算
+  优点：利用预训练能力，不需架构改动
+  缺点：verbalize 每一步，慢；"思考"被迫在离散符号空间进行
+
+路线 B：Latent Reasoning——在 hidden state 空间迭代
+  Coconut：最后一层 hidden state 直接喂回作为下一个"思想 token"
+  Looped Transformer：同一块权重反复跑 R 次
+  BDH-CQ H_r：H_{r+1} = F_θ(H_r, S_K)，迭代 R 步再 decode
+  优点：不用 verbalize，高维连续向量信息密度高
+  缺点：不可解释；需要专门训练；梯度穿 R 层相同权重难训
+
+路线 C：外部工具/搜索——MCTS、Best-of-N、代码执行验证
+```
+
+Latent Reasoning 理论上比 CoT 更强的原因：CoT 的每步被迫表示成自然语言 token，而语言 token 表达能力有上限（中间状态语言说不清楚）；latent 空间 ℝ^d 可表示语言无法表达的东西。
+
+BDH-CQ 两个组件的分工：S_t（recurrent memory）解决"如何把 demonstration 压进固定状态"，H_r（latent reasoning）解决"如何在已知任务的情况下计算答案"。H_r 的每次迭代可理解为"对照任务记忆 S 检查并修正当前草稿"，R 次后草稿收敛再 decode——比 CoT 省 token，比单次 forward pass 给了更多计算预算。
+
