@@ -320,6 +320,7 @@ $$
 | **[五篇横向对照](../../video_generation/dmd_few_step_ar/analysis.md)** | 📌 **它在「② 少步初始化要不要独立阶段」上是一个新形态**：既不是 ForgeWM 的独立一致性蒸馏阶段，也不是 SolarWM/Matrix-Game 3.5 的「合并进 teacher-forcing 阶段」，而是**把 consistency distillation 作为一项并进最后的 DMD 目标里**（`L_DMD + 0.5·L_cm`）。**这是第三种解法，同样零消融** |
 | **[Recency Forcing](../../video_generation/recency_forcing/analysis.md)** | ⚠️ **对本篇最核心的设计给出了反向证据**。本篇把上下文做成**有界四路 prefix**，即硬性截断；Recency Forcing 的 Table 4 恰恰在测这件事：同一 backbone、同一评测下，**硬截断上下文（`L_attention=9`）VBench-Long Quality 81.10，连续衰减（保留全上下文 + 远帧权重压到近 0）84.17，差 3.07 分**。它的论点是「截断把模型仍在用的时序信息也扔了」。⚠️ **两篇任务、backbone、评测全不同，不能直接比** —— 但这是仓库里第一次有人用实验数据碰这个取舍，而本篇零消融，无从辩护 |
 | **[Avatar-Forever](../../video_generation/avatar_forever/analysis.md)** | 📌 **同一个底座、同一个血统、相反的组织方式**：同样基于 LTX-2.3（它保留音频分支、用满 22B），同样把历史当**干净 token 前缀 + 双向注意力**，抗漂移同样源自 Helios 的退化算子。但本篇是**串行**的（Stage 2b 抗漂移 → Stage 3 DMD），它是**并行**的（全参 DMD 与长时 LoRA 分开训、部署时权重相加）。本篇用 error bank 回放一步残差，它用 K 轮 rollout 传播扰动 —— **两种"用模型自己的错"的实现，都零定量对照** |
+| **[PixVerse R2](../pixverse_r2/analysis.md)** | 📌 最像本篇的工业系统（技术博客，无论文）：同样有 sink 与 error bank、同样把历史当有界前缀；区别是它做音视频联合生成、多一路 Object KV Cache、没有几何记忆，并让 DMD 的 teacher 也用因果模型。⚠️ 零规格、零对比，只能当设计清单看 |
 | [SolarWM](../solarwm/analysis.md) | 它的发布矩阵里列了 "AlayaWorld v1.1" 一行 |
 | [ABot-World-0](../abot_world_0/analysis.md) / [EVOKE](../evoke/analysis.md) / [ReWorld](../../video_generation/reworld/analysis.md) | 长时记忆的其它路线：有界 KV cache + 身份记忆 / Pi3X 点云 World State Bank / landmark bank。📌 **加上本篇的"四路有界 prefix"和 MG3.5 的"patch 画布"，仓库里长时记忆已经有五条不同路线，而彼此之间没有任何定量对照** |
 

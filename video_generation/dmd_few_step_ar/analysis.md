@@ -173,6 +173,8 @@ $$
 
 📌 **顺带记一组对整簇都有用的数 —— 同一个公开的 Causal Forcing checkpoint，各篇论文报出的 VBench Total**：Causal Forcing 原文 84.04、[ViRDM](../virdm/analysis.md) 84.51、[RAVEN](../raven/analysis.md) 84.96、[Mask Forcing](../mask_forcing/analysis.md) 82.67（其主表协议整体偏低）。**仅评测环境就能带来约 0.9 分的差异**，这一簇论文里常见的 0.3–0.5 分领先，都应放在这个波动下看。
 
+📌 **工业侧的一个数据点**：[PixVerse R2](../../world_model/pixverse_r2/analysis.md) 的技术博客把这条流水线画成"五段式"。它的做法是 ① 并进持续预训练，**② 的 ODE 初始化和 ③ 的 DMD teacher 都换成同一个因果模型**（Causal Forcing 只换了前者，其 DMD 的 real score 仍是双向的 Wan2.1-14B），DMD 换成 Decoupled DMD + DMD2 式对抗正则。⚠️ 博客没有任何对照实验与规格数字。
+
 📌 **但这第三票强化了本节开头那个更细的读法**：**Matrix-Game 3.5 把少步能力显式写进了 Stage 1 的目标**（PFM 直接在少步设定下约束干净预测），而不是指望 ③ 的 DMD 顺手解决。**三篇合起来指向同一件事 —— 少步能力必须被显式训进去；分歧只在它要不要占一个独立阶段。**
 
 ### 4.2 DMD 该不该是最后一个阶段

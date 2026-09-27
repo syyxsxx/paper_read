@@ -50,6 +50,7 @@
 | [AlayaWorld: Interactive Long-Horizon World Modeling](./alayaworld/analysis.md) | alayaworld | A 交互式视频世界模型 | Alaya Lab(盛大), 2026-07 | 把视觉上下文做成预算固定的四路 prefix(sink+6帧时序+最多10帧空间记忆+最近帧),每 chunk 计算量恒定、horizon 原则上无界;空间记忆沿用 GEN3C(forward splatting + coverage mask 当 attention key bias);error bank 回放模型自己的残差抗漂移;DMD+self-forcing+++consistency 三项合一,30步→4步。iWorld-Bench 8 项赢 7 项,但零消融 |
 | [AI for Games in the Foundation Model Era](./ai_for_games/analysis.md) | ai_for_games | E 综述 | NUS+NTU, 2026-09 | 六角色框架（Play/Model/Design/Build/Runtime/Test）+ 三递归问题（Boundary/Transfer/Evidence）系统梳理 400+ 篇游戏 AI 文献；关键发现：基础模型扩展接口但不消除游戏专属结构，证据在有界 Play 最强（ARC-AGI-3 GPT-6 Astra 62.71%），在持久世界状态和跨 session 运行时最弱；Artifact Reuse ≠ Capability Transfer，三独立测试（Compatibility/Use/Benefit）缺一不可 |
 | [WorldCrafter: Consistent Video World Model with Implicit 3D-aware Memory](./worldcrafter/analysis.md) | worldcrafter | A 交互式视频世界模型 | Tencent IEG ARC Lab+北大, 2026-09 | LagerNVS 初始化 Memory Encoder（无深度/warping）+ Pose-guided Readout + max-coverage FoV 贪心检索，4 阶段训练 + 双模型 pyramid 蒸馏；重访 LPIPS 0.186（-fast）全榜第一，相机控制三指标全胜，内存处理 21.7× 快于深度方法；代价是每 chunk 全量重编码历史（非增量） |
+| [PixVerse R2: Scaling Real-Time Omni World Models（技术博客）](./pixverse_r2/analysis.md) | pixverse_r2 | A 交互式视频世界模型 | PixVerse Research, 2026-08 | 实时音视频世界模型的工业博客:持续预训练的 Omni Causal AR(四类控制、变长 chunk、Hybrid TF/DF + 有界相对 RoPE、Sink/Rolling/Object KV 三路记忆、Error Bank)+ 同一因果骨干兼任 ODE 初始化与 DDMD teacher;零规格、零对比、零消融 |
 
 ## 核心问题
 
