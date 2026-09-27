@@ -354,6 +354,8 @@ rollout 侧在 `:87`(`rollout()`),优势计算在 `engines/grpo.py`。
 **训练开销**:RAVEN ≈ **70** H200 GPU·hours,CM-GRPO ≈ **170** H200 GPU·hours。
 **评测**:VBench Total / Quality / Semantic;Dynamic Degree 一列**不用** VBench 原指标,改用 UnifiedReward-32B 在 VBench prompt suite 的全部 6,220 条视频上打分 —— 理由是 VBench 的 Dynamic Degree 用 RAFT 光流幅度算,会把镜头抖动和时序漂移一并算成"运动"。
 
+> 📌 **补记(2026-09):仓库里出现了正好相反的做法。** [ViRDM](../virdm/analysis.md) 在训练里加了一个光流正则,开源代码显示它与 VBench Dynamic Degree 的判定规则逐项相同(同一份 `raft-things.pth`、8 fps 抽帧、前 5% 光流均值、阈值 11.25、命中数 10),损失非零当且仅当 VBench 会把视频判为静态 —— 也就是**直接优化本篇刻意弃用的那个指标**。另外,本篇 Table 1 里 Causal Forcing 的 VBench Total 是 84.96,高于 ViRDM 头条的 84.87(ViRDM 自己复测 Causal Forcing 是 84.51)。
+
 ### 6.1 主结果（Table 1）
 
 | 方法 | Total | Qual. | Sem. | Dyn. Deg. |

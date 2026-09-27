@@ -169,6 +169,10 @@ $$
 
 📌 **它对这五篇最有价值的一个数据点**：**在 30 步 base 模型 rollout 上训的长时 LoRA，直接叠到 4 步 DMD 学生上也能压住后者的漂移**（FID 39.5 → 35.0、FVD 1080 → 902）—— 也就是说，**③ 里"on-policy"的那个 policy 不一定非得是学生本人**。⚠️ 但它同样零对照：**没有任何串行或联合训练的对比**，"并行优于串行"只是断言。
 
+⚠️ **再补记：[ViRDM](../virdm/analysis.md)（Northeastern + Adobe）保留 ① 与 ②，只把 ③ 换掉。** 它直接取 Causal Forcing 发布的 causal-ODE checkpoint，把最后的 DMD 阶段替换成**表示空间里的 MMD**（冻结 V-JEPA 2.1 + SigLIP2，对 6,505 条离线参考），不需要 14B teacher 与在线 critic，20 次更新、16 A100-h。它的 Table 3 再次确认：**不先做 ①，分布匹配救不回来**（直接从双向模型起步只有 65.80）。⚠️ 但只用 RDM 时官方 VBench Total 是 83.41，低于 Self Forcing 与 Causal Forcing；把它推过去的光流正则，开源代码显示与 VBench Dynamic Degree 的判定规则逐项相同。
+
+📌 **顺带记一组对整簇都有用的数 —— 同一个公开的 Causal Forcing checkpoint，各篇论文报出的 VBench Total**：Causal Forcing 原文 84.04、[ViRDM](../virdm/analysis.md) 84.51、[RAVEN](../raven/analysis.md) 84.96、[Mask Forcing](../mask_forcing/analysis.md) 82.67（其主表协议整体偏低）。**仅评测环境就能带来约 0.9 分的差异**，这一簇论文里常见的 0.3–0.5 分领先，都应放在这个波动下看。
+
 📌 **但这第三票强化了本节开头那个更细的读法**：**Matrix-Game 3.5 把少步能力显式写进了 Stage 1 的目标**（PFM 直接在少步设定下约束干净预测），而不是指望 ③ 的 DMD 顺手解决。**三篇合起来指向同一件事 —— 少步能力必须被显式训进去；分歧只在它要不要占一个独立阶段。**
 
 ### 4.2 DMD 该不该是最后一个阶段

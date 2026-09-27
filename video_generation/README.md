@@ -82,6 +82,7 @@
 | [recency_forcing](./recency_forcing/analysis.md) | Recency Forcing: Bridging the Long-Horizon Gap in Autoregressive Video Generation | 长视频 AR:给 attention 的 history 段加随 denoising timestep 变化的衰减 bias,零推理开销 | Qualcomm AI Research, 2026-09 | [arXiv](https://arxiv.org/abs/2609.19729) | ✅ |
 | [vidu_s2](./vidu_s2/analysis.md) | Vidu S2: Real-Time Interactive, Editable, and Spatial Video Generation | 实时数字人生成(720p) + 实时流式视频编辑(4 类任务) + VR 空间视频 | 清华+生数科技, 2026-09 | [demo](https://vidu.com/vidu-stream) | ✅ |
 | [avatar_forever](./avatar_forever/analysis.md) | Avatar-Forever: Decoupled Parallel Training for High-Quality Real-Time Infinite Avatars | 音频驱动实时数字人:全参 DMD 管少步、RRT LoRA 管长时,部署时权重相加;ForeverCache 推理缓存(近似) | PolyU + ByteDance + AMD, 2026-08 | [project](https://leeruibin.github.io/avatarforever-project-page/) | ✅ |
+| [virdm](./virdm/analysis.md) | ViRDM: Taming Representation Distribution Matching for Few-Step Causal Video Generation | 少步因果视频:用冻结 V-JEPA+SigLIP2 表示空间的 MMD 替换 DMD 的 teacher+critic,只训 generator | Northeastern + Adobe Research, 2026-09 | [project](https://neu-vi.github.io/ViRDM/) | ✅ |
 | self_forcing | Self Forcing: Bridging the Train-Test Gap in Autoregressive Video Diffusion | 长 T2V | NeurIPS 2025 (Adobe) | [github](https://github.com/guandeh17/Self-Forcing) | ⏳ |
 | causvid | From Slow Bidirectional to Fast Autoregressive Video Diffusion Models | 短 T2V | CVPR 2025 (MIT/Adobe) | [github](https://github.com/tianweiy/CausVid) | ⏳ |
 
