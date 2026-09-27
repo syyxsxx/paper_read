@@ -263,7 +263,7 @@ decoder 也用时间因果注意力掩码。**时间因果 encoder + 时间因�
 | **Table 4：AR 顺序 time-first vs depth-first** | **全 token 时无显著差异**（246.6 vs 242.6），但 time-first **允许推理时调整 token 数**从而拿到更好性能（4 tok 时 gFVD 151.1） |
 | **Fig 10：decoder 注意力对对齐分的影响** | **时间因果在少 token 时对齐分更高**，支持"前几个 token 语义更强"的假设 | 无具体数字 |
 
-📌 **Table 2 和 Table 3 呈现同一个模式，很值得记**：**凡是让重建变好的选择（完整注意力、1D 平坦结构），下游生成都变差。** 论文的解释是**这些 token"更难预测"，可能因为缺少足够的结构**。这是个反复出现的规律——**tokenizer 的重建质量不是下游生成质量的好代理**。
+📌 **Table 2 和 Table 3 呈现同一个模式，很值得记**：**凡是让重建变好的选择（完整注意力、1D 平坦结构），下游生成都变差。** 论文的解释是**这些 token"更难预测"，可能因为缺少足够的结构**。这是个反复出现的规律——**tokenizer 的重建质量不是下游生成质量的好代理**。 📌 **补记（2026-09）**：[On the Diffusibility of High-Dimensional Latents](../../image_generation/diffusibility/analysis.md) 在图像 RAE 上观察到同样现象（为重建微调后 PSNR 17.34→29.12，但 v-pred 的 FID 18.34→29.97），**换成 x0-prediction 后现象反转**（FID 16.80）—— 提示"重建—生成此消彼长"可能部分来自 v-parameterization 在低有效维度 latent 上的优化困难（推测，设置不同，待验证）。
 
 **Fig 11（§D，同序列长度 1280 下的层级 vs 光栅顺序）**：两个 tokenizer 用**同样的 256 tok/frame**，唯一差别是 token 结构和 nested dropout。结论：
 1. VideoFlexTok 的**文本对齐分在所有规模上都更好**；
