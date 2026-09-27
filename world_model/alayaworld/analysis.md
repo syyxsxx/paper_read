@@ -274,6 +274,7 @@ $$
 - 🔴 **"有界"只覆盖了 DiT 那一段，系统并不有界。** 论文的原话是 *"Because the context is a **bounded rolling window** … the **compute per chunk is constant** and the horizon N is in principle unbounded"*。**token 上下文确实有界**（sink 1 + 时序 6 + 空间 ≤10 + 最近 1），**但空间记忆的 cache `B` 是单调增长的** —— rollout 第 4 步每生成一个 chunk 就 *"append"* 一次，**全文没有任何 eviction / 容量上限 / 降采样 / 体素化策略**（grep "evict"/"prune"/"discard" 均为 0）。而检索那一步是**贪心最大覆盖**，要把 **`B` 里每个候选**都 unproject + project 一遍才能算覆盖率 —— **所以检索开销和 cache 显存都随 rollout 线性增长**。"capped set of 10 **rendered** cache frames" 封的是检索的**输出**，不是**输入**。论文没有点破这一点。
 - 🔴 **"efficient response" 是四大能力之一，却没有任何延迟/FPS 数字** —— 而且实际的每 chunk 成本远不止那 4 步。按 §3.1 的 rollout 流程，**每个 chunk 要做：4 次 DiT forward + 1 次 VAE decode 到像素 + 1 次 Depth-Anything-3 单目深度 + 一次在增长中的 cache 上的几何检索与 splatting + 1 次 VAE encode**。**论文量化的只有第一项。** 对一篇主打交互的工作，这是最该有的那个数。
 - ⚠️ **主表的 prompt 被改写过**，而 baseline 大概率没有（见 §6）。
+- 🔴 **补记（2026-09，借 [AR 视频记忆综述](../../video_generation/ar_video_memory/analysis.md) 回查 iWorld-Bench 原文 arXiv:2605.03941，我逐项核对过）**：① iWorld-Bench 把轨迹统一切成 **81 帧片段**（其附录），记忆任务是"单次推理内走环形路径"，被测模型的生成时长为 **3.2–7.6 s**（其 Table 14）—— 摘要的 *"best performance over long-horizon generation"* 在这个基准上不成立；② **本篇 Table 3 的 baseline 分数与 iWorld-Bench 原文结果表逐字相同**（我核了 Cosmos、Matrix-Game 2.0、HY-World 1.5 三行的全部 8 个数，其余三个 baseline 各抽 2 个数，全部命中），是引用而非重跑，所以它们**一定**没有经过本篇的 prompt 改写。iWorld-Bench 原表还有一列总分（如 HY-World 1.5 为 0.7729），本篇转引时去掉了。这也可能解释 WAN 2.2 为何不在本篇的对比模型清单里、Matrix-Game 2.0 为何分数反常（iWorld-Bench 以 640×352、3.4 s 的配置测它）—— 后两点是推断。
 - ⚠️ **主表在 480p，而宣传是 540p/720p。**
 - 🔴 **「声称无界 → 展示 60 秒 → 量化 0 秒」。**
 
@@ -281,7 +282,7 @@ $$
   |---|---|
   | **声称** | *"the horizon N is **in principle unbounded**, giving **arbitrarily long** interactive generation"*（§3.1）；标题与摘要主打 "Long-Horizon" |
   | **展示** | **60 秒** —— Figure 8 每帧左上角有时间徽章 **0s / 12s / 24s / 36s / 48s / 60s**，**这是全文唯一的时间轴** |
-  | **量化** | **0。** Table 3 没有 rollout 长度这一列，§4.1/§4.2 从头到尾没说 iWorld-Bench 的 rollout 跑多长，**没有任何指标是作为 horizon 的函数报的** |
+  | **量化** | **只有 81 帧片段。** 本篇 Table 3 没有 rollout 长度这一列、正文也没说；查 iWorld-Bench 原文才知道它的样本统一是 81 帧，被测模型生成时长 3.2–7.6 s（见上一条补记）。**没有任何指标是作为 horizon 的函数报的** |
 
   ⚠️ **而且那 60 秒本身就看得出退化**：我把 Figure 8 第一行放到 400 DPI 看，0s 是饱和的深蓝天空、枝干清晰，**到 48s 天空已经发白、左缘出现一道粗重的深色树干伪影，60s 整幅塌成灰白低对比**。（⚠️ 相机在这 60s 里从桦树林走到了工业建筑前，**曝光变化有一部分可能是真实的场景/朝向变化，我无法把两者分开** —— 但 caption 写的是 *"maintains **stable visual quality**"*，至少这一行不支持。）
   📌 **它对 "unbounded" 的论证仍是结构性的**（有界 token 上下文 ⇒ 每 chunk 常数 DiT 计算量），**比单纯喊"无限"扎实** —— 但见下一条，这个论证只覆盖了 DiT 那一段。
@@ -324,4 +325,4 @@ $$
 | [SolarWM](../solarwm/analysis.md) | 它的发布矩阵里列了 "AlayaWorld v1.1" 一行 |
 | [ABot-World-0](../abot_world_0/analysis.md) / [EVOKE](../evoke/analysis.md) / [ReWorld](../../video_generation/reworld/analysis.md) | 长时记忆的其它路线：有界 KV cache + 身份记忆 / Pi3X 点云 World State Bank / landmark bank。📌 **加上本篇的"四路有界 prefix"和 MG3.5 的"patch 画布"，仓库里长时记忆已经有五条不同路线，而彼此之间没有任何定量对照** |
 
-⚠️ **一条仓库缺口**：**iWorld-Bench（arXiv:2605.03941）没有笔记**，而它是本篇唯一的定量依据。另外 **GEN3C**（本篇空间记忆的出处）与 **Causal-rCM**（蒸馏形式的出处）也都没有。
+⚠️ **一条仓库缺口**：**iWorld-Bench（arXiv:2605.03941）没有独立笔记**（其协议与时长已在 [AR 视频记忆综述](../../video_generation/ar_video_memory/analysis.md) 与本篇 §8 的补记里核对），而它是本篇唯一的定量依据。另外 **GEN3C**（本篇空间记忆的出处）与 **Causal-rCM**（蒸馏形式的出处）也都没有。

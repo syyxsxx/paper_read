@@ -84,6 +84,7 @@
 | [avatar_forever](./avatar_forever/analysis.md) | Avatar-Forever: Decoupled Parallel Training for High-Quality Real-Time Infinite Avatars | 音频驱动实时数字人:全参 DMD 管少步、RRT LoRA 管长时,部署时权重相加;ForeverCache 推理缓存(近似) | PolyU + ByteDance + AMD, 2026-08 | [project](https://leeruibin.github.io/avatarforever-project-page/) | ✅ |
 | [virdm](./virdm/analysis.md) | ViRDM: Taming Representation Distribution Matching for Few-Step Causal Video Generation | 少步因果视频:用冻结 V-JEPA+SigLIP2 表示空间的 MMD 替换 DMD 的 teacher+critic,只训 generator | Northeastern + Adobe Research, 2026-09 | [project](https://neu-vi.github.io/ViRDM/) | ✅ |
 | [dart](./dart/analysis.md) | DART: Distillation-Aware Reparameterization for Training-Free LoRA Reuse in Few-Step Video Diffusion Models | 蒸馏后 LoRA 复用:bridge 坐标搬运 + 目标调度下逐通道响应校准(闭式岭回归),免训练 | 电子科大+清华+哈工大+腾讯, 2026-09 | [arXiv](https://arxiv.org/abs/2609.20051) | ✅ |
+| [ar_video_memory](./ar_video_memory/analysis.md) | The Past Frames the Future: Memory for Autoregressive Video Generation — A Survey | 综述:自回归视频生成中的记忆(载体/功能/操作/学习/评测五视角,417 篇参考文献) | HKUST+CityUHK+FDU 等 16 家机构, 2026-09 | [github](https://github.com/HaroldChen19/Awesome-AR-Video-Memory) | ✅ |
 | self_forcing | Self Forcing: Bridging the Train-Test Gap in Autoregressive Video Diffusion | 长 T2V | NeurIPS 2025 (Adobe) | [github](https://github.com/guandeh17/Self-Forcing) | ⏳ |
 | causvid | From Slow Bidirectional to Fast Autoregressive Video Diffusion Models | 短 T2V | CVPR 2025 (MIT/Adobe) | [github](https://github.com/tianweiy/CausVid) | ⏳ |
 
