@@ -311,6 +311,8 @@ $$
 
 **① WorldRoamBench 是同一批作者做的。** 参考文献 [84] 的作者列表——Ting-Bing Xu、Jiacheng Sui、Zhe Gao、Wenjin Yang、Zhicheng Liu、Zhaoxu Sun、Mingchao Sun、Hongyu Pan、Fan Jiang、**Mu Xu**——与 ABot-World-0 的贡献者名单**大面积重合**（Benchmark Team 五人全部在列，Foundation Model Team 的 Fan Jiang、Zhaoxu Sun，Data Team 的 Hongyu Pan、Mingchao Sun，以及 Project Sponsor Mu Xu）。**论文正文完全没有披露这层关系。** 这是全文最需要打折的地方。
 
+📌 补记（2026-09）：[HappyWorld-Bench](../happyworld_bench/analysis.md) 把 ABot-World-0-5B 放进视频赛道，Arena Elo 843、14 个模型中排第 13。那份基准同样是"自建榜 + 自家模型"：排第一的 HappyOyster 与基准同属 Alibaba Token Hub，且未披露。
+
 **② 唯一的量化对手里，两个"开源大模型"分数低到反常。** LingBot-World(14B) 和 HY-World 1.5(8.3B) 的分数在 0.11–0.42 区间，**比 ABot-World-0 低 40%–75%**。这种量级的差距通常意味着**评测协议或配置适配有问题**，而非真实能力差距。**论文没有说明这两个模型是如何接入 benchmark 的**。而真正打得过 ABot-World-0 的两个（Genie 3、HappyOyster）**都没有公布参数量**，所以"5B 打赢更大的模型"这个隐含叙事**只在那两个可疑的低分对照上成立**。
 
 **③ HappyOyster 也是阿里巴巴自家产品。** 参考文献 [85] 是 Alibaba Cloud Blog。它在七项里赢了五项。论文没有讨论"同公司的另一个产品全面领先自己"意味着什么。
