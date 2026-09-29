@@ -426,6 +426,7 @@ $$
 | **[Recency Forcing](../recency_forcing/analysis.md)** | 同样记录了 Dynamic Degree 可以被"不健康"的动态刷高（截断上下文 → 88.58，综合质量反降）；ViRDM 的 Table 9 在 λ = 1e-3 时也出现同样的形态（88.89，闪烁与一致性下降）。它的主表里 Causal Forcing 是 84.04 |
 | **[Mask Forcing](../mask_forcing/analysis.md)** / **[OPSD-V](../opsd_v/analysis.md)** | 都在改 DMD 本身（rollout 里注入什么、teacher 看到什么上下文）；ViRDM 则把 DMD 整个拿掉 |
 | **[Avatar-Forever](../avatar_forever/analysis.md)** | 同为"删减少步蒸馏流水线"的工作，也同样是**开源代码暴露了论文没写的关键实现**（那边是 ForeverCache 自承的近似，这边是与评测判据相同的光流正则） |
+| **[DyMD](../dymd/analysis.md)** | 同一个 V-JEPA 2.1-L 编码器、同一个 4 步 shift-5 学生 schedule，同样在治「蒸馏后动作变少」，但**用法相反**：ViRDM 把 DMD 换成 V-JEPA 空间里的 MMD，V-JEPA 是匹配的尺子；DyMD 保留 DMD，V-JEPA 只用来比较学生与配对真实视频的时间变化、决定 re-noise timestep 从哪个分布采。两篇的主要增益最后都落在一个朴素旋钮上：这里是等价于 Dynamic Degree 判据的光流正则，DyMD 是把 re-noise shift 从 5 调到 25（占它 TAC 增益的 56%） |
 
 ⚠️ **仓库缺口**：图像侧的 RDM [17]、FD loss [68]、Drifting Models 都还没有笔记；Self Forcing 与 Causal Forcing 本身也没有专篇 —— 而本文的初始化、随机出口、评测协议全部来自这两篇。
 

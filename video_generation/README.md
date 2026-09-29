@@ -86,6 +86,7 @@
 | [dart](./dart/analysis.md) | DART: Distillation-Aware Reparameterization for Training-Free LoRA Reuse in Few-Step Video Diffusion Models | 蒸馏后 LoRA 复用:bridge 坐标搬运 + 目标调度下逐通道响应校准(闭式岭回归),免训练 | 电子科大+清华+哈工大+腾讯, 2026-09 | [arXiv](https://arxiv.org/abs/2609.20051) | ✅ |
 | [ar_video_memory](./ar_video_memory/analysis.md) | The Past Frames the Future: Memory for Autoregressive Video Generation — A Survey | 综述:自回归视频生成中的记忆(载体/功能/操作/学习/评测五视角,417 篇参考文献) | HKUST+CityUHK+FDU 等 16 家机构, 2026-09 | [github](https://github.com/HaroldChen19/Awesome-AR-Video-Memory) | ✅ |
 | [casa](./casa/analysis.md) | Exploring Data-Free LoRA Transferability for Video Diffusion Models | 蒸馏后 LoRA 复用:奇异子空间路由分析 + 簇级谱仲裁(免数据免训练) | 港科大(广州)+南大+哈工大(深圳), ICML 2026 | [github](https://github.com/Noahwangyuchen/CASA) | ✅ |
+| [dymd](./dymd/analysis.md) | DyMD: Preserving Interaction Dynamics through Distribution Matching Distillation in Few-Step Video World Models | 机器人操作 I2V 的 DMD 蒸馏(PF-Wan 14B→4 步双向 1.3B):按 rollout 与配对真实视频的 V-JEPA 运动一致性混合 base schedule 与 teacher-velocity turning prior 采 re-noise timestep + 按预测拟合难度给 critic FM loss 加权 | 北航+京东 JD Future Academy, 2026-09 | [arXiv](https://arxiv.org/abs/2609.31349) | ✅ |
 | self_forcing | Self Forcing: Bridging the Train-Test Gap in Autoregressive Video Diffusion | 长 T2V | NeurIPS 2025 (Adobe) | [github](https://github.com/guandeh17/Self-Forcing) | ⏳ |
 | causvid | From Slow Bidirectional to Fast Autoregressive Video Diffusion Models | 短 T2V | CVPR 2025 (MIT/Adobe) | [github](https://github.com/tianweiy/CausVid) | ⏳ |
 
