@@ -428,6 +428,7 @@ $$
 | **[Avatar-Forever](../avatar_forever/analysis.md)** | 同为"删减少步蒸馏流水线"的工作，也同样是**开源代码暴露了论文没写的关键实现**（那边是 ForeverCache 自承的近似，这边是与评测判据相同的光流正则） |
 | **[DyMD](../dymd/analysis.md)** | 同一个 V-JEPA 2.1-L 编码器、同一个 4 步 shift-5 学生 schedule，同样在治「蒸馏后动作变少」，但**用法相反**：ViRDM 把 DMD 换成 V-JEPA 空间里的 MMD，V-JEPA 是匹配的尺子；DyMD 保留 DMD，V-JEPA 只用来比较学生与配对真实视频的时间变化、决定 re-noise timestep 从哪个分布采。两篇的主要增益最后都落在一个朴素旋钮上：这里是等价于 Dynamic Degree 判据的光流正则，DyMD 是把 re-noise shift 从 5 调到 25（占它 TAC 增益的 56%） |
 | **[RWTD](../../image_generation/rwtd/analysis.md)** | 图像侧同类：同为「冻结编码器 + 特征空间分布匹配 + 不要 critic」（同属 RDM 一支），但目标不是固定离线参考，而是随模型演化的 reward-tilted 混合（DINOv2 上的 Sinkhorn OT + 逐样本回归）；同样由开源代码暴露了与评测相关、论文未写的细节（HPS 校准统计取自评测集 PartiPrompts、GenEval 训练期评测取自官方评测集） |
+| **[MMD 两样本检验](../../foundations/mmd_two_sample/analysis.md)**（Gretton 等 2008） | 📌 **本文 Eq. 3 就是那篇 Eq. 6 的平方**：有偏 V-statistic，含 `i = i′` 的对角项。RBF 核下对角项是常数、不产生梯度，与无偏估计的差别只是排斥项乘 `(1 − 1/B)`，训练上可以忽略；参考集上的中位数带宽启发式也出自那篇 §8。那篇 §6 提过 Gram 矩阵低秩近似，只说"对零分布的影响有待研究"；本文用 Nyström 做吸引项，不做检验，所以那个问题不适用，但 loss 已经不是精确的 MMD |
 
 ⚠️ **仓库缺口**：图像侧的 RDM [17]、FD loss [68]、Drifting Models 都还没有笔记；Self Forcing 与 Causal Forcing 本身也没有专篇 —— 而本文的初始化、随机出口、评测协议全部来自这两篇。
 

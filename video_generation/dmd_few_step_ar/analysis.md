@@ -213,6 +213,7 @@ $$
 
 - **OPSD-V** 的训练数据是用 **optical flow 过滤**掉低运动样本得到的高运动子集，而 **Dynamic Degree 正是基于 RAFT 光流的运动幅度指标** —— 在高运动数据上做 velocity 回归，这个指标上升几乎是设计使然。
 - **Mask Forcing** 的收敛曲线用 **CMMD / VMMD** 度量 student 与 **real-score teacher** 的分布距离，而 **DMD loss 的全部作用就是把 student 推向同一个 teacher** —— 这是训练目标的直接读数，不是独立的质量证据。
+  - 📌 补记：CMMD / VMMD 是 CLIP / V-JEPA2 特征上的 MMD（原理见 [MMD 两样本检验](../../foundations/mmd_two_sample/analysis.md)）。除了与训练目标同源，读这类曲线还要注意两点：若用的是有偏估计，偏置项 `(1/m)(1 − E_p k(x,x′))` 会随生成样本的多样性变化；两条曲线的差距要和 `σ_u/√m` 量级的抽样误差比，才能说是真的变好。
 
 **我的判断**：**这两篇是最该被直接对比、也最容易被直接对比的一对**（同 backbone、同 NFE、同 base model），而且它们正交、可以叠加。Mask Forcing 引用了 OPSD-V 但归进被批评的一类、没做对比。**这是整个对照里最具体的一个开放实验。**
 
