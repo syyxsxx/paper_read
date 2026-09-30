@@ -14,6 +14,7 @@
 | [rf](./rf/analysis.md) | Representation Forcing for Bottleneck-Free Unified Multimodal Models | 统一多模态（理解+像素空间生成，无 VAE） | 港大+ByteDance, 2026 | [project](https://yuqingwang1029.github.io/RepresentationForcing) | ✅ |
 | [videoflextok](./videoflextok/analysis.md) | VideoFlexTok: Flexible-Length Coarse-to-Fine Video Tokenization | 视频 tokenizer(可变长度/由粗到细) | Apple + EPFL, 2026-04 | [project](https://videoflextok.epfl.ch) | ✅ |
 | [sensenova_u15](./sensenova_u15/analysis.md) | SenseNova-U1.5: Towards Native Unified Visual Intelligence | 原生统一多模态（理解+生成+编辑+交错，encoder-free+VAE-free，至 4K）；**含 OPD 簇的工业级落地** | 商汤(论文未署名), 2026-09 | [github](https://github.com/OpenSenseNova/SenseNova-U1) | ✅ |
+| [ef_scaling](./ef_scaling/analysis.md) | How Far Are We from Removing the Visual Encoder? Scaling Laws for Encoder-Free Multimodal Pretraining | Encoder-free MLLM scaling law（文本等价，多模态 ~10^22 FLOPs 追平） | CASIA/UCAS/Tencent, 2026-09 | [arXiv](https://arxiv.org/abs/2609.35457) | ✅ |
 
 ## 关键技术词汇
 
