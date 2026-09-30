@@ -396,5 +396,6 @@ $$
 | **joint 组合（本文的对照组）** | [opdvr](../opdvr/analysis.md) | 🔴 **未引用，但 OPDVR 正属于本文的范式 II**（见 §7.1）。两篇同期、结论相反 |
 | **teacher 的来源** | [opsd](../opsd/analysis.md) | 本文 Limitations 明确把 self-distillation 列为未覆盖的配置 |
 | **扩散侧同构** | [danceopd](../../image_generation/danceopd/analysis.md)、[flow_opd](../../image_generation/flow_opd/analysis.md)、[diffusion_nft](../../image_generation/diffusion_nft/analysis.md)、[rvm](../../video_generation/rvm/analysis.md) | 连续域上的对应问题。📌 **本文的"分阶段而非混合"在扩散侧还没有对应工作** —— 那边的 RL 后训练（如 [SenseNova-U1.5](../../multimodal/sensenova_u15/analysis.md) 的四专家 RL → OPD 蒸馏）其实**已经是分阶段的**，只是顺序相反（先 RL 再蒸馏） |
+| **联合 vs 分阶段（一步图像）** | [rwtd](../../image_generation/rwtd/analysis.md) | RWTD 把 on-policy 锐化与 reference 锚按固定 ρ 混进同一目标（联合），GenEval 上 ρ=0.15 胜过纯 off-policy ρ=1（0.80 vs 读图约 0.76，单次运行）；它没试 ρ 从 1 退火到 0 的分阶段方案，本文结论提示这是值得补的对照 |
 
 📌 **最后这条对比值得单独记**：本文主张 **OPD → RL**（先扩覆盖、后锐化），而 [SenseNova-U1.5](../../multimodal/sensenova_u15/analysis.md) 的后训练是 **RL（四个专家）→ OPD（蒸馏合并）**。**两者顺序正相反，但目的不同** —— 后者的 OPD 是用来「把多个专家合并成一个模型」，不是用来扩覆盖的。**「OPD 放在 RL 前面还是后面」在两个域里各有一种做法，而没有人对比过。**

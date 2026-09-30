@@ -242,6 +242,7 @@ $$
 | [opsa](../opsa/analysis.md) | OPSA 论证 OPD 的收益来自"压制低概率 token"而非 teacher。📌 **用本篇的坐标读：OPSA 动的是 reverse-KL 那一格里的 reward 取值，而不是格子本身** |
 | [opsd](../opsd/analysis.md) | Self-Distilled Reasoner —— **teacher 换成"看了答案的同模型"，即动的是第三个轴（teacher 从哪来），本篇的 2×2 不覆盖它** |
 | [opd_then_rl](../opd_then_rl/analysis.md) | **见下，两篇有实质张力** |
+| [rwtd](../../image_generation/rwtd/analysis.md)（扩散侧类比） | 用本篇坐标读：样本全部 student 自采（on-policy），回归目标却有 ρ 份来自 reference 的 reward 加权样本（off-policy），最接近「student 状态 + 外来 target」的 DAgger 格（一步生成器没有前缀，仅类比） |
 
 ### 🔴 与 [opd_then_rl](../opd_then_rl/analysis.md) 的张力
 

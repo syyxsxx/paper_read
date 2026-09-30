@@ -15,6 +15,8 @@ DiffusionNFT 把 online RL 整个搬到**前向(加噪)过程**上:用 reward �
 
 📌 **这篇是仓库里 RL 那一簇的关键拼图**——已经被 9 篇笔记引用却一直没有专篇。[RVM](../../video_generation/rvm/analysis.md) 证明它是自己框架的特例,[Self-OPD](../self_opd/analysis.md)、[Flow-OPD](../flow_opd/analysis.md)、[DiffusionOPSD](../diffusion_opsd/analysis.md) 都拿它当主要对照。
 
+📌 一步生成器上的对照见 [RWTD](../rwtd/analysis.md)：同为「reward 加权监督回归、不要 likelihood 与轨迹」，但用指数 tilt、靠 ρ 份 reference 质量而非负样本分支防塌；它的 ρ=0（纯 on-policy）消融给出了与本文「去掉负支即崩」同方向且有数字的证据（PickScore 22.75→21.57，LPIPS 0.652→0.414）。
+
 ---
 
 ## 2. 要解决的问题

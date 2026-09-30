@@ -434,6 +434,8 @@ $$
 
 ⚠️ **但有两个现成的坑**：㈠ 扩散侧的 reward 通常是连续的（美学分、HPS、GenEval 通过率），二值化的阈值就是一个**新超参**，OPDVR 最大的卖点（零超参）当场失效；㈡ [OPSA](../opsa/analysis.md) 笔记里已经汇总过，[Self-OPD](../../image_generation/self_opd/analysis.md) 去掉排斥项会在 600 步崩、[DiffusionNFT](../../image_generation/diffusion_nft/analysis.md) 去掉负支会「almost instantly collapse」、[RVM](../../video_generation/rvm/analysis.md) 也靠 `r<0` 的推开机制 —— **扩散侧已有三篇独立工作指向「负信号不可或缺」**。而 OPDVR 在正确轨迹上把负信号全删了。搬之前先做一个「只保留正支会不会崩」的小实验。
 
+📌 补一个反向数据点：[RWTD](../../image_generation/rwtd/analysis.md)（一步生成器）完全没有负分支，只把样本拉向 reward 加权目标，ρ=0.15 时稳定；防塌靠的是目标里固定一份 reward-tilted reference 质量，ρ=0 时同样塌（PickScore 22.75→21.57、LPIPS 0.652→0.414）。所以「需要负信号」更准确的说法可能是「需要一个不随策略漂移的锚」。
+
 ### Q4：如果只抄一条，抄哪条？
 
 **抄 §4.1 的那个改写，不是抄那个 ReLU。**

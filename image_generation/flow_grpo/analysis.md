@@ -265,6 +265,7 @@ $$
 **① 评测协议高度自利:训练 reward 与测试 metric 同源。** 这是最需要警惕的一条。
 
 - **GenEval**:reward 就是 GenEval 打分器本身,训练 prompt 用 **GenEval 官方脚本按同样模板生成**,测试集**只按"物体顺序"去重**(`a photo of A and B` vs `B and A`),**没有按物体类别/属性组合去重**。所以 0.63→0.95 里多少是能力提升、多少是过拟合到同一模板 + 同一检测器,**无法分离**。
+  - 📌 [RWTD](../rwtd/analysis.md)（一步 SANA-Sprint）沿用同一协议（同一 Mask2Former Swin-S + OpenCLIP ViT-L-14、同样阈值，外加官方 correct bonus），但训练 prompt 与 553 条评测 prompt 精确重合为 0；它「超过多步模型」同样只对比了未经 GenEval RL 的通用模型，本文的 SD3.5-M 0.95 就是同协议下的多步反例。
 - **OCR**:论文明说 "This reward **also serves as our metric** of text accuracy" —— reward 与 metric 是同一个函数。
 - **PickScore**:既是 reward 又出现在 Table 2 的 Preference Score 一栏,论文自己也承认"likely due to overlap between PickScore and evaluation metrics"。
 

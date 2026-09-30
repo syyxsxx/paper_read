@@ -227,6 +227,7 @@ for n = 0 … N−1:
 | [forgewm](../../video_generation/forgewm/analysis.md) | 🔴 **最直接的下游**：ForgeWM 的 **Stage 2「在线因果一致性蒸馏」就是 CTM/CM 这一路在因果视频模型上的实例**，而 [五篇横向对照](../../video_generation/dmd_few_step_ar/analysis.md) 的核心结论正是「**少步能力必须被显式训进去**」—— 那一步做的就是 CTM 式的一致性蒸馏 |
 | [dmd_few_step_ar](../../video_generation/dmd_few_step_ar/analysis.md) | 五篇 DMD few-step AR 的横向对照。**它们流水线里的「② 少步化」那一格，祖宗就是这篇** |
 | [rvm](../../video_generation/rvm/analysis.md) / [diffusion_nft](../../image_generation/diffusion_nft/analysis.md) | 扩散 RL 后训练。**与本文的共同点是都在 velocity/score 空间上做回归 + stop-grad**，但目标不同（一个压步数、一个对齐 reward） |
+| [rwtd](../../image_generation/rwtd/analysis.md) | 一步模型蒸完之后的对齐：底座 SANA-Sprint 是 sCM + LADD 蒸出的一步模型；RWTD 只用样本 + 标量 reward，不需要 teacher、轨迹或 critic，名字里的 Distillation 指把 OT 目标 amortize 进生成器 |
 | [uno](../uno/analysis.md) | 同为"加速"，但 Uno 是 **LLM 解码侧**且**有精确保证**；CTM 这类蒸馏是**换掉模型本身**，没有任何分布保证 |
 
 📌 **一条跨篇的呼应值得记**：**「辅助 GAN 损失扛走了大部分头条增益」这件事，在仓库里不止一次出现** —— [Mask Forcing](../../video_generation/mask_forcing/analysis.md) 批评过 DMD2 的 GAN head，[ForgeWM](../../video_generation/forgewm/analysis.md) 的 Stage 3 被测出是"用 paired 保真度换 per-frame 观感"。**CTM 是这条线最早也最干净的一个样本：Table 3 就把账算给你看了（5.19 → 2.28），只是论文没有把它放在显眼的位置。**

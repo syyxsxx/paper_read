@@ -391,6 +391,7 @@ $$
 | **[五篇横向对照](../dmd_few_step_ar/analysis.md)** | 📌 本篇也是挂在 DMD 蒸馏上的补丁，但**它不改蒸馏目标、不改 rollout 构造，只改 attention**，是那五篇之外的第六种打法，且是唯一一种**推理期零开销**的。 |
 | **[AlayaWorld](../../world_model/alayaworld/analysis.md)** | ⚠️ **同一个问题的两种相反答案**。AlayaWorld 用**有界四路 prefix**（sink + 6 帧压缩历史 + ≤10 帧空间记忆 + 最近帧）硬性截断上下文；本篇的 Table 4 恰恰在说**硬截断不如连续衰减**（Quality 81.10 vs 84.17）。⚠️ 两者不可直接比（任务、backbone、评测全不同），**但这是仓库里第一次有实验数据触到这个取舍**。 |
 | **[SANA-Streaming](../sana_streaming/analysis.md)** | 它的 softmax 分支是 sliding window + persistent sink chunk，**即硬窗口**。本篇的论点如果成立，那条分支换成软衰减也许能省掉一部分窗口长度。 |
+| **[HetA-DiT](../../inference_acceleration/heta_dit/analysis.md)** | 同为 Qualcomm AI Research。HetA 把整个加速建在 FlexAttention 的 block-sparse kernel 上（逐 token 在 11³ local 与 dense 间路由），注意力 FLOPs ↓4.85× 只兑现成 1.84× 的实测注意力延迟，且没说 dense 基线用哪个 kernel——本篇 BAR 那组 FlexAttention vs FlashAttention 的 11.76× 正是这个问题的参照 |
 
 ⚠️ **仓库缺口**：本篇的两个直接基座 **Self-Forcing** 与 **Causal Forcing (arXiv:2602.02214)** 都没有独立笔记，**Deep Forcing** 和 **∞-RoPE** 也没有 —— 而这四篇是本篇全部对照的来源。
 

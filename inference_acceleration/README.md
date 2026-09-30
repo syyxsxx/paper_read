@@ -53,3 +53,4 @@
 | [mrflow](./mrflow/analysis.md) | Multi-Resolution Flow Matching: Training-Free Diffusion Acceleration via Staged Sampling | 多分辨率分阶段采样(免训练) | arXiv 2026-07 (BUAA+NTU+ICT) | [github](https://github.com/xliu-deep/MrFlow) | ✅ |
 | [ctm](./ctm/analysis.md) | Consistency Trajectory Models: Learning Probability Flow ODE Trajectory of Diffusion | 少步蒸馏的**奠基工作**(任意 t→任意 s 的轨迹函数) | Sony AI+CMU+Stanford, **ICLR 2024** | [github](https://github.com/sony/ctm) | ✅ |
 | [uno](./uno/analysis.md) | Unlocking Lossless Speedups in LLMs via Discrete Diffusion | **LLM 解码加速**(扩散当起草器 + AR 验收,无损) | IFM/MBZUAI+Cerebras+Cornell+Harvard, 2026-09 | [project](https://s-sahoo.com/uno) | ✅ |
+| [heta_dit](./heta_dit/analysis.md) | Where Compute Matters: Heterogeneous Attention for Efficient Video Diffusion | 视频 DiT 逐 token 异构注意力(local/dense 路由,需两阶段微调,挂在 3 步 DMD 上) | Qualcomm AI Research+Univ. of Bonn, 2026-09 | [arXiv](https://arxiv.org/abs/2609.31050) | ✅ |
