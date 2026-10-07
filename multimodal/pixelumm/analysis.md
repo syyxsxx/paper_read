@@ -45,18 +45,22 @@ PixelUMM 是首个将图像与视频的理解和生成统一在**像素空间**�
 
 ### 4.1 原生像素接口
 
-图片和视频完全绕过预训练编码器，像素到骨干之间只有确定性的 patchify 和一层线性投影：
+图片和视频完全绕过预训练编码器，像素到骨干之间只有确定性的 patchify 和一层线性投影。
+
+图像（`p=16`，每 patch = 768 维原始 RGB）：
 
 $$
-\mathbf{x}^{\text{img}} \xrightarrow{\text{2D Patchify}_{16\times16}} \mathbb{R}^{N_{\text{img}} \times (16\cdot16\cdot3)} \xrightarrow{\text{img\_und/gen\_linear\_proj}} \mathbb{R}^{N_{\text{img}} \times d}
+\mathbf{x}^{\text{img}} \xrightarrow{\text{2D Patchify}} \mathbb{R}^{N_{\text{img}} \times 768} \xrightarrow{\text{Linear}} \mathbb{R}^{N_{\text{img}} \times d}
 $$
 
+视频（tubelet `4×16×16`，每 tubelet = 3072 维）：
+
 $$
-\mathbf{x}^{\text{video}} \xrightarrow{\text{3D Patchify}_{4\times16\times16}} \mathbb{R}^{N_{\text{video}} \times (4\cdot16\cdot16\cdot3)} \xrightarrow{\text{video\_und/gen\_linear\_proj}} \mathbb{R}^{N_{\text{video}} \times d}
+\mathbf{x}^{\text{video}} \xrightarrow{\text{3D Patchify}} \mathbb{R}^{N_{\text{video}} \times 3072} \xrightarrow{\text{Linear}} \mathbb{R}^{N_{\text{video}} \times d}
 $$
 
-- 图像：patch size `p=16`，每个 patch = 768 维原始 RGB → 线性投影到 hidden dim `d`
-- 视频：tubelet size `τ×p×p = 4×16×16`，每个 tubelet = 3072 维 → 投影到 `d`
+每个模态各有**两套独立线性投影**：`img_und_linear_proj` / `video_und_linear_proj`（输入干净像素，理解侧）和 `img_gen_linear_proj` / `video_gen_linear_proj`（输入加噪像素，生成侧）。
+
 - 每个模态各有**两套独立线性投影**：理解侧（输入为干净图像/视频）和生成侧（输入为加噪图像/视频）
 - 输出 head 也是单层线性（RMSNorm + linear），多模态训练前**零初始化**
 
