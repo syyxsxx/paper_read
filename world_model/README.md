@@ -38,6 +38,7 @@
 
 | 论文 | 简称 | 支线 | 发表 | 一句话 |
 |------|------|------|------|--------|
+| [Spatial Memory Intelligence: Endowing World Models with Understanding-Driven Long-Term Memory](./smi/analysis.md) | smi | A 交互式视频世界模型（记忆管理） | CUHK(SZ)+Alibaba+南大+Lovart AI+Didi, 2026-10 | 首个用 MLLM（Qwen3.5-4B）作空间记忆管理器：四原子操作（聚类+稀疏化+动作感知检索+可靠性过滤），83.68% 记忆稀疏化，Camera-Constrained Consistency +26%，×1.38 延迟；几何/语义检索均存在结构性局限，MLLM 推理弥补两者 |
 | [Alaya-EVOKE: From Linear-Scaling Supervision to Endless World](./evoke/analysis.md) | evoke | A 视频世界模型 | USTC+Alaya Lab, 2026-08 | WSB + Sparse Teacher + SFD，首个 90s 几何一致交互视频生成 |
 | [WorldDiT: A Unified Diffusion Architecture for World and Action Modeling](./worlddit/analysis.md) | worlddit | B 世界-动作模型 | Bagel Labs, 2026-07 | 399M 参数共享 DiT 同时回归 7 步动作与未来归一化 RGB patch，推理时摘掉视觉路径，LIBERO 均值 94.9% 落在 sub-billion Pareto 前沿；但报告值含 60% 非 held-out episode 且无消融 |
 | [Agentic Game Development as a Verifiable Trajectory Data Engine for Scaling World Models](./awomo/analysis.md) | awomo | C 可验证游戏数据引擎 | NUS+InfRec+Berkeley+HKUST, 2026-08 | 把游戏开发轨迹(intent+edit+engine check+repair+acceptance)包装成 RLHEV 递归数据飞轮，替代 CLIP 等模糊奖励；UnitySceneBench Full RLHEV Primary 0.681 vs Engine-only 0.55，Unity→held-out Unity 0.25→0.75，embodied +48.43% D4RL |
