@@ -355,6 +355,7 @@ $$
 | **[AlayaWorld](../../world_model/alayaworld/analysis.md)** | 被收进 Table 4 / 7（空间 + 动态；显式 + 隐式 + 视觉）。本笔记借综述回查出它的两个新问题（§5.2） |
 | **[Matrix-Game 3.5](../../world_model/matrix_game_35/analysis.md)** / [WorldCrafter](../../world_model/worldcrafter/analysis.md) / [ReWorld](../reworld/analysis.md) / [EVOKE](../../world_model/evoke/analysis.md) | 分别对应综述里的 patch 式视觉记忆、编码后的历史、位姿索引的隐式记忆、显式点云状态 —— **仓库里的长时记忆路线正好覆盖了它的四类载体中的三类**（参数记忆一篇都没有） |
 | **[Recency Forcing](../recency_forcing/analysis.md)** | 它命名的 *KV eviction mismatch* 正是综述 §6.3 "记忆感知学习"单列的第二种失配 |
+| **[FlashForward](../flashforward/analysis.md)** | §3.4 那张表讲的是训练时历史从哪来、加什么扰动（"时间有序扰动"一格的 Diagonal Distillation，正是 FlashForward Table 1 里 N-C-Causal-rCM 沿用的做法）；FlashForward 看的是另一个轴：**部署时记忆在哪个噪声级发布、何时可读**，这决定了哪些 chunk 能跨卡并行。按 §3.3 的操作表，它的写入是"同 stage 全量准入 + 滚动截断（5 个 chunk）"加"稀疏锚点准入"（planner 预先生成的两侧 clean anchor） |
 | **[Avatar-Forever](../avatar_forever/analysis.md)** | 按 §3.4 的界定，它的 RRT LoRA 不是参数记忆；RRT 本身落在"模型导出扰动"与"self-rollout"之间，且逼近的是 base 而非学生的 `q_θ` |
 | **[OPSD-V](../opsd_v/analysis.md)** / [RAVEN](../raven/analysis.md) | 综述 §6.2.3 self-rollout 的两个代表，描述与仓库笔记一致。RAVEN 弃用 VBench Dynamic Degree 的做法，也正合 §7"没有哪个分数本身是记忆专属的"的立场 |
 | [AI for Games 综述](../../world_model/ai_for_games/analysis.md) | 仓库里另一篇综述；两者互补：那篇讲游戏场景的整体版图，这篇只讲自回归视频里的记忆 |

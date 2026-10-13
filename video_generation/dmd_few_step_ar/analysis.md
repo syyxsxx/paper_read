@@ -461,6 +461,8 @@ A: **因为五篇都没有动那个真正的天花板 —— teacher 本身仍�
 
 **而它自己的 Fig 10 显示，把时域拉长之后 HPSv3 在 60 秒内还是从 8 掉到 5–6。**
 
+📌 **补记（2026-10）**：[FlashForward](../flashforward/analysis.md)（Meta + NTU）给了另一种绕法。它的 DMD 仍然只在 21 个 latent（≈ 5 s）的窗口里打分（沿用 LongLive 的 image head 分 4 块），**长程依赖改由在 20 s 真视频上 SFT 的 planner 承担**：planner 每 10 个 latent 生成一个 clean anchor，renderer 读两侧 anchor 补中间帧。它的 VBench-Long Total 从 20 s 到 65 s 只降 0.0009（0.8404 → 0.8395），同表 Self-Forcing 降 0.0452；但只测到 65 s、只有 VBench 一种指标，而且多了一个 256K Shutterstock 真视频的 SFT 阶段。
+
 ---
 
 **Q: 对游戏资产/世界生成，这五篇哪几篇真的相关？**

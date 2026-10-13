@@ -175,6 +175,8 @@ DMD 的梯度本质是两个 score 之差 `∇L ∝ s_fake − s_real`。**要�
 
 **另配一个 condition curriculum**：先蒸 CFG 与相机控制、**不开在线记忆**，再逐步把 patch memory 和 context frame 加进来。并沿用 **HiAR** 的做法 —— 每个去噪子步里把自回归前缀与 chunk 局部 context **保持在下一个噪声水平**、只留 anchor 干净，*"This represents imperfect generated history with appropriate uncertainty, reducing long-horizon drift"*。
 
+> 📌 **补记（2026-10）**：[FlashForward](../../video_generation/flashforward/analysis.md)（Meta + NTU）把 Self-Forcing 的 clean history、HiAR 的 less-noisy history 和它自己的同 stage history 放进同一张表比较：记忆在哪个噪声级、何时可读、每个 chunk 要几次纯建 cache 的前向。按它的计数，HiAR 式历史每个 chunk 要做 S 次重编码（本笔记没有核到 Matrix-Game 3.5 的实现是否付这个代价）。FlashForward 同样是"带噪历史 + 干净 anchor"，区别在于 anchor 是 planner 预先生成的**过去 + 未来**两侧稀疏 latent，而不是这里紧邻生成窗口的那一帧过去观测。
+
 **产出：一个三步（3 denoising steps）的因果生成器。**
 
 ### 4.3 📌 交叉对照一：它在「少步初始化要不要独立阶段」上投了第三票
