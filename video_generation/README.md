@@ -63,6 +63,7 @@
 | [bernini](./bernini/analysis.md) | Bernini: A Scalable Unified Framework for Video Generation and Editing | V2V/RV2V/S2V/T2V 统一 | ByteDance, 2026-05 | [project](https://bernini-ai.github.io) | ✅ |
 | [lingbot_video](./lingbot_video/analysis.md) | Scaling Mixture-of-Experts Video Pretraining for Embodied Intelligence | T2V/TI2V/T2I + 具身 | Ant Group, 2026 | [github](https://github.com/robbyant/lingbot-video) | ✅ |
 | [genception](./genception/analysis.md) | Video Generation Models are General-Purpose Vision Learners | 通用视觉感知(深度/法线/分割/姿态/关键点) | Google DeepMind, 2026-07 | [project](https://genception.github.io) | ✅ |
+| [kandinsky6](./kandinsky6/analysis.md) | Kandinsky 6.0 Video: Foundation Models for Synchronized Video and Audio Generation | 同步音视频生成（T2AV/I2AV，Full-HD） | Kandinsky Lab, 2026-10 | — | ✅ |
 | [joyai_echo](./joyai_echo/analysis.md) | JoyAI-Echo: Pushing the Frontier of Long Audio-Visual Generation | 长音视频多镜头生成 | 京东 Joy Future Academy, 2026-06 | [github](https://github.com/jd-opensource/JoyAI-Echo) | ✅ |
 | [wan_dancer](./wan_dancer/analysis.md) | Wan-Dancer: A Hierarchical Framework for Minute-scale Coherent Music-to-Dance Generation | 分钟级音乐驱动舞蹈 T2V | Tongyi Lab, Alibaba, 2026 | [github](https://github.com/alibaba/Wan-Dancer) | ✅ |
 | [wan_alpha](./wan_alpha/analysis.md) | Video Generation with Stable Transparency via Shiftable RGB-A Distribution Learner | RGB-A 透明视频生成 | 天津大学 + 腾讯, 2026 | — | ✅ |
