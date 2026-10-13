@@ -202,6 +202,8 @@ $$
 
 📌 **仓库里有一个带数字的参照**：[HetA-DiT](../../inference_acceleration/heta_dit/analysis.md)（Qualcomm，同为训练中适应的内容自适应稀疏注意力，80% token 走 11³ local）在 Wan2.2-5B 上注意力 FLOPs 缩减 4.85×，实测注意力延迟只快 1.84×、Transformer block 只快 1.63×——从 FLOPs 缩减到实测注意力延迟就折损了约 2.6 倍。
 
+📌 **另一个参照来自 [Veda](../../inference_acceleration/veda/analysis.md) 的官方仓库**(MiniMax-H3 上的块稀疏实现,作者自测):注意力耗时 = 7.77 s + 42.61 s × 密度,5% 密度时 78.5% 是与密度无关的固定开销(gather / 打分 / scatter 等)。稀疏度推到 90% 以上之后,省下来的主要是 kernel 里那一小块。
+
 ### 4.4 金字塔少步蒸馏
 
 生成路径组织成**一到两个低分辨率阶段 + 一个高分辨率阶段**：低分辨率阶段确定场景布局、主体运动与相机结构，高分辨率阶段恢复纹理、边缘与局部细节；引的是 Pyramidal Flow Matching。📌 仓库里 [Helios](../../video_generation/helios/analysis.md) 的 Pyramid UPC 是同一类思路（多分辨率噪声 → 数据轨迹）。

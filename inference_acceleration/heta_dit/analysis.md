@@ -642,6 +642,7 @@ $$
 | **[Vidu S2](../../video_generation/vidu_s2/analysis.md)** | 工业侧的另一种异构：按**层灵敏度**给不同层配不同近似（SageAttention / SpargeAttn / SLA）。HetA 是在每一层内部按 token 异构，二者正交 |
 | **[五篇横向对照](../../video_generation/dmd_few_step_ar/analysis.md)** | 那篇记录了同一个公开 checkpoint 的 VBench Total 跨论文可差 0.92，而 HetA 全部消融只跨 0.58。另外，HetA 的底座是双向 3 步 DMD，不是那一簇的因果 AR。§3.1 那个"不确定度 ≈ DMD 修正量"的信号理论上可以直接搬到 AR 学生上，还没人试过 |
 | [LongLive 2.0](../../video_generation/longlive2/analysis.md) | 同样用 FlexAttention 编译自定义 mask；那边编的是 SP-native 的 AR block-sparse mask |
+| **[Veda](../veda/analysis.md)** | 同期的另一种"学出来的注意力稀疏":Veda 逐 tile 做 Top-k,打分器蒸馏 full attention 的 tile 级 max-pool;本篇逐 token 在 local / dense 间路由。两边自己的证据都削弱了"学出来的信号":本篇固定均匀路由只低 0.15;Veda 官方仓库自测同密度下 Sol-Attn 更好,且 5% 密度时 78.5% 的注意力耗时是与密度无关的固定开销 |
 
 ⚠️ **仓库缺口**：
 - 本文的全部对照（VSA、STA、SLA、Jenga、ToCa、Attention Surgery、ReHyAt）都没有专篇笔记，它依赖的 DMD / DMD2 也没有。
