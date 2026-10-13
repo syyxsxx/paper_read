@@ -138,18 +138,67 @@ RL 使用 LoRA（r=16, α=32），GRPO K=10 rollouts/prompt，DPM2 20步，CFG=1
 
 ## 5. 关键数据集
 
-| 类型 | 规模 | 备注 |
-|------|------|------|
-| T2I | 50M 图像 | 用于视频流图像注入（含 RCC 俄罗斯文化代码数据集） |
-| T2V | 20M 视频场景 | 主视频预训练 |
-| T2A | 大规模音频语料 | 音频流预训练 |
-| T2AV | 配对音视频 | 联合训练核心数据 |
-| SFT | 11 个领域（speech/music 等）| 每领域独立微调后 model soup |
-| RL | 在线采样，per-prompt rollout | 8 路奖励实时打分 |
+### 5.1 各阶段数据规模
+
+| 类型 | 规模 | 来源/备注 |
+|------|------|----------|
+| T2I | 50M 图像 | 视频流图像注入预训练（含 RCC 俄罗斯文化代码数据集） |
+| T2V | 20M 视频场景 | 主视频流预训练 |
+| T2A | **40M 音频曲目**（每段 5–20 秒）| 从 K5.0 视频库中抽取，音频流预训练 |
+| T2AV | **7M 配对音视频片段** | 联合训练核心数据（经过严格质量过滤） |
+| I2AV | **116K 样本**（精选）| 图像条件音视频训练，25% 混合入 T2AV |
+| SFT | 11 个领域，共 4,663（Stage 1）/ 7,686（Stage 2）clip | 每领域独立微调后 model soup |
+| RL | **2,984 curated clips**（双语，100% 带音频字幕）| T2AV 专属，GRPO K=10 rollouts/prompt |
 | SR | 150K clips（4K 100K + K5T2V 35K + Aesthetic-4K 15K）| 配对 LQ/HQ 退化数据 |
 | RCC（俄罗斯文化代码）| 1.2M 图像 + 530K 视频 | 俄语文化内容，双语注入 |
 
-字幕生成：Qwen3-235B-A22B 生成原始描述，Qwen3-30B-A3B 改写为 4 级详细程度混合（long 70% + medium 15% + short 10% + shortest 5%）。
+### 5.2 T2AV 数据筛选标准
+
+T2AV 7M 片段需同时通过以下质量门槛：
+
+| 维度 | 指标 | 阈值 | 说明 |
+|------|------|------|------|
+| 唇形同步 | LSA（Lip Sync Accuracy，0–5）| **≥ 3** | 低于此值的含人声视频丢弃 |
+| AV 去同步 | Desync（0–1）| **< 0.1** | 音视频时间偏移过大时丢弃 |
+| 视觉质量 | DOVER / Q-Align | 阈值过滤 | 模糊、压缩失真、低美学分片段 |
+| 内容过滤 | CRAFT | 字符/文字区域比例 | 剔除大量文字遮挡的片段 |
+
+### 5.3 字幕生成流水线
+
+T2AV 每条片段经过三阶段多模型字幕流水线生成联合字幕：
+
+```
+Step 1  Gemma-4E4B-it
+        ↓ 从音频轨中提取语音转录（speech transcript）
+Step 2  Qwen3-30B-A3B
+        ↓ 生成非语音音频描述（ambient sound, music, effects）
+Step 3  Qwen3.5-35B-A3B
+        ↓ 融合视频画面 + 语音转录 + 音频描述
+        → 统一的联合音视频字幕（joint caption）
+```
+
+视频部分字幕：Qwen3-235B-A22B 生成原始描述，Qwen3-30B-A3B 改写为 4 级详细程度混合（long 70% + medium 15% + short 10% + shortest 5%）。
+
+### 5.4 SFT 数据集领域分布（Table 1）
+
+Stage 1 冻结音频流优化视觉质量，Stage 2 解冻全模型加入唇形同步：
+
+| 领域 | Stage 1 clips | Stage 2 clips |
+|------|:---:|:---:|
+| People Action（人物动作）| 1,410 | 1,460 |
+| Animals（动物）| 591 | 840 |
+| Cartoons（动画/卡通）| 550 | 998 |
+| People Speech（人物语音）| 493 | 1,069 |
+| Music（音乐）| 466 | 466 |
+| Food（食物）| 347 | 662 |
+| Nature（自然）| 214 | 668 |
+| Art（艺术）| 159 | 307 |
+| Architecture（建筑）| 147 | 474 |
+| Interiors（室内）| 147 | 357 |
+| Tech（科技）| 139 | 368 |
+| **合计** | **4,663** | **7,686** |
+
+People Speech 领域从 Stage 1 到 Stage 2 增幅最大（493→1069，+117%），与 Stage 2 专注唇形同步优化的目标一致。
 
 ---
 
@@ -197,15 +246,43 @@ RL 使用 LoRA（r=16, α=32），GRPO K=10 rollouts/prompt，DPM2 20步，CFG=1
 | vs MiniMax H3 | **H3 更强**：H3 在视觉质量全面领先；K6Pro 在语音/同步有竞争力 |
 | vs Seedance 2.0 | **Seedance 视觉更强**；K6Pro 在语音质量上领先 |
 
-### 6.3 推理效率（H100，5 秒 clips，非蒸馏）
+### 6.3 推理效率与内存占用
 
-| 模式 | Lite | Pro |
-|------|------|-----|
-| SD | 239s | 356s |
-| HD | 203s | 292s |
-| Full HD | 284s | 402s |
+#### H100 生成耗时（Table 10，5 秒 clips，50 NFE，非蒸馏）
 
-消费级 GPU（RTX 5090/4090）通过 block offloading 可运行，Pro 模型 SD 峰值内存从 72.8GB → 21.7GB（offloading 模式），支持 16GB VRAM 卡（NF4 量化文本编码器 + SR 空间分块）。
+| 分辨率 | Lite | Pro |
+|--------|:----:|:---:|
+| SD（864×480）| 239s | 356s |
+| HD（1280×720）| 203s | 292s |
+| Full HD（1920×1080）| 284s | 402s |
+
+蒸馏后（10 NFE）速度提升约 5×：Lite HD 蒸馏约 40s，Pro HD 蒸馏约 58s。
+
+#### 消费级 GPU 生成耗时（Table 10，Lite 模型 HD 分辨率）
+
+| GPU | VRAM | Lite HD 耗时 |
+|----|:----:|:---:|
+| RTX 5090 | 32GB | 296s |
+| RTX 4090 | 24GB | 422s |
+
+#### VRAM 占用（Table 7 / 8 / 9）
+
+**Pro 模型 SD 分辨率**（50 NFE，全精度）：
+
+| 配置 | 峰值 VRAM |
+|------|:---:|
+| 标准模式（H100）| 72.8 GiB |
+| Block offloading 模式 | **21.7 GiB** |
+
+**16GB 低显存预设**（Lite，NF4 量化文本编码器 + SR 空间分块）：
+
+| 分辨率 | 峰值 VRAM |
+|--------|:---:|
+| SD | 7.9 GiB |
+| HD | 13.7 GiB |
+| Full HD | 12.3 GiB |
+
+Full HD VRAM（12.3 GiB）低于 HD（13.7 GiB）是因为 Full HD 走超分路由，SR 阶段空间分块处理降低了峰值占用。
 
 ---
 
