@@ -336,6 +336,8 @@ $$
 - **ltx-2.5-22B**：官方是音视频 checkpoint，SolarWM **只当视频骨干用**——审计后发现音频流占 3.7B、双向音视频 cross-attention 占 2.6B，**两部分都被移除**，留下 13.1B 视频核心 + 1.6B 冻结 Gemma connector = **14.7B 实际视频路径**。
 - **minimax-h3-33B**：**保留 H3 的多模态打包，不把它变成 video-only DiT**。音频行**被保留是因为它们很小**，填入官方 AudioVAE 编码的**静音**并赋零音频 loss。📌 **相机注入还保住了预训练的 head 划分：维度 `[0:96)` 保留原生内容表示和 MM-RoPE，只有 `[96:128)` 接收 camera-relative-pose PRoPE**，且只作用在 VisualVAE 锚和目标视频行上。
 
+📌 **补记（2026-10）**：同一团队随后在这个框架上做了 [SolarRenderer](../solarrenderer/analysis.md)：同样冻结 MiniMax-H3 33B，把游戏引擎导出的结构视频（灰盒、语义图、深度、SMPL 身体）接进 H3 原生的 reference 通路，并让每个结构帧拿到目标帧的 RoPE 位置；一个 control LoRA 加一个 4 步加速 LoRA 就能做结构条件渲染。它也保留了 H3 的多模态打包，没有改成 video-only DiT。
+
 ---
 
 ## 6. 实验

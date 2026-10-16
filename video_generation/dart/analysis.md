@@ -425,6 +425,7 @@ $$
 | **[LongLive 2.0](../longlive2/analysis.md)** | 📌 **"蒸馏增量本身就是低秩"的现成例子**：LongLive 2.0 的少步能力是一个 rank-128 的 DMD-LoRA 旁路。本篇的 bridge 取的正是蒸馏增量 `W_t − W_s` 的秩 `r_b` 近似 —— 若目标恰好是"base + 一个蒸馏 LoRA"，`r_b` 不小于该秩时 bridge 能精确还原增量、剩余漂移 `R = 0`。这种形式并不罕见：本篇用的推理框架 LightX2V 在 Hugging Face 上**同时**发布了 `lightx2v/Wan2.2-Distill-Models`（完整权重）与 `lightx2v/Wan2.2-Distill-Loras`（LoRA）两种 Wan2.2 蒸馏版本。**本篇的目标是哪一个、`r_b` 取多少，都没有交代** `[待补]`。这时"用户 LoRA 叠在蒸馏 LoRA 上"就变成了经典的两个 LoRA 相互干扰问题（TIES / KnOTS 那一类） |
 | **[五篇横向对照](../dmd_few_step_ar/analysis.md)** | 那五篇都在研究**怎么蒸馏出**少步因果模型；本篇研究的是**蒸馏之后**，原有定制化资产（LoRA）还能不能用 —— 是那条流水线的下游问题，此前仓库里没有一篇碰过 |
 | [RAVEN](../raven/analysis.md) / [ViRDM](../virdm/analysis.md) | VBench Dynamic Degree 的三种处理：RAVEN 弃用、ViRDM 直接优化其判定规则、本篇排除（§7） |
+| **[SolarRenderer](../../world_model/solarrenderer/analysis.md)** | 📌 **同一问题在"控制 LoRA + 加速 LoRA"组合上的数据点**：在冻结的 MiniMax-H3 33B 上，把现成的 4 步加速 LoRA（LongLive-Plug / DMAD / FastH3）不经训练直接叠到结构控制 LoRA 上，能出图但质量明显下降（Gemini Elo 922–1053）；它的解法不是改控制 LoRA，而是冻结它、只用 structure-guided DMD 后训练加速 LoRA（160 次 generator 更新，Elo 到 1096）。本篇与 [CASA](../casa/analysis.md) 都被它列为"让 LoRA 在 base 与蒸馏模型间迁移"的相关工作 |
 
 ⚠️ **仓库缺口**：LoRA-X、X-Adapter、TIES-Merging、KnOTS 都没有笔记。本篇唯一的外部基线 CASA 已补入仓库（[casa](../casa/analysis.md)）；本篇写于 2026-09，当时是仓库里第一篇研究"LoRA 跨蒸馏复用"的论文。
 
