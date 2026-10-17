@@ -357,6 +357,7 @@ ProLoRA（为图像模型设计的免数据 LoRA 迁移，把 LoRA 拆到源模�
 | **[Avatar-Forever](../avatar_forever/analysis.md)** | 📌 它的部署 `θ★ = θ0 + Δθ_DMD + Δθ_RRT` 正是本篇研究的场景：base 上训的 LoRA 直接加到蒸馏（DMD）模型上。那边直接相加就有效，本篇的路由视角可以拿来解释"什么时候直接加没问题" —— 例如恢复类 LoRA 的路由是否避开了 DMD 的主导簇 |
 | [五篇横向对照](../dmd_few_step_ar/analysis.md) | 本篇的目标模型（FastWan、Rolling Forcing、Krea Realtime）都是那条少步 / 因果蒸馏流水线的产物；本篇处理的是它的下游问题：蒸馏之后，社区里现成的 LoRA 还能不能用 |
 | [LongLive 2.0](../longlive2/analysis.md) | 本篇假设蒸馏是**全参微调**；若蒸馏本身就是一个 LoRA（如 LongLive 2.0 的少步 DMD-LoRA），`C_fft` 会是低秩的，本篇的簇级分析与主导区域划分是否仍然成立，没有测过 |
+| **[LongLive-Plug](../longlive_plug/analysis.md)** | **方向相反**：本篇把 base 上的 LoRA 搬到蒸馏模型上；LongLive-Plug 把蒸馏本身做成 LoRA（单次前向 CFG、4 步 DMD2、长上下文），免训练加到同一 base 的各种下游模型上，包括全参微调过的。它在相关工作里引了本篇 |
 
 ⚠️ **仓库缺口**：ProLoRA、LoRA-X、X-Adapter、Trans-LoRA 这条"跨模型 LoRA 迁移"的线都还没有笔记；本篇目标模型之一 Rolling Forcing 也没有专篇。
 

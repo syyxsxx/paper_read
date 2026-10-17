@@ -426,6 +426,7 @@ $$
 | **[五篇横向对照](../dmd_few_step_ar/analysis.md)** | 那五篇都在研究**怎么蒸馏出**少步因果模型；本篇研究的是**蒸馏之后**，原有定制化资产（LoRA）还能不能用 —— 是那条流水线的下游问题，此前仓库里没有一篇碰过 |
 | [RAVEN](../raven/analysis.md) / [ViRDM](../virdm/analysis.md) | VBench Dynamic Degree 的三种处理：RAVEN 弃用、ViRDM 直接优化其判定规则、本篇排除（§7） |
 | **[SolarRenderer](../../world_model/solarrenderer/analysis.md)** | 📌 **同一问题在"控制 LoRA + 加速 LoRA"组合上的数据点**：在冻结的 MiniMax-H3 33B 上，把现成的 4 步加速 LoRA（LongLive-Plug / DMAD / FastH3）不经训练直接叠到结构控制 LoRA 上，能出图但质量明显下降（Gemini Elo 922–1053）；它的解法不是改控制 LoRA，而是冻结它、只用 structure-guided DMD 后训练加速 LoRA（160 次 generator 更新，Elo 到 1096）。本篇与 [CASA](../casa/analysis.md) 都被它列为"让 LoRA 在 base 与蒸馏模型间迁移"的相关工作 |
+| **[LongLive-Plug](../longlive_plug/analysis.md)** | 🔴 **方向相反**：本篇把 base 上训的下游 LoRA 搬到蒸馏模型上；LongLive-Plug 把蒸馏本身做成 LoRA（单次前向 CFG、4 步、长上下文），免训练加到同一 base 的下游模型上。它在 SCOPE、深度 ControlNet 上测了任务指标，但叠加任务 LoRA（Loomis Painter、Aether 等）的情况没有任何定量结果；按本篇"6 个里 4 个功能反向"的经验，那类组合的功能是否保住需要单独测 |
 
 ⚠️ **仓库缺口**：LoRA-X、X-Adapter、TIES-Merging、KnOTS 都没有笔记。本篇唯一的外部基线 CASA 已补入仓库（[casa](../casa/analysis.md)）；本篇写于 2026-09，当时是仓库里第一篇研究"LoRA 跨蒸馏复用"的论文。
 

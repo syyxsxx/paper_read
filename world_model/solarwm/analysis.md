@@ -340,6 +340,8 @@ $$
 
 📌 **补记（2026-10）**：同一团队还发布了 [H3 Streaming VAE Decoder](../../inference_acceleration/h3_streaming_vae/analysis.md)：不训练、不改权重，把 H3 的 VAE decoder 改成逐 latent 的因果流式解码，SolarWM 这种一次出 5 个 latent 的模型解码时不用再等下一个 chunk 的 2 个 latent。它在 SolarWM 的 26 段测试视频上验证过，亮度跳变 p95 从 2.27 降到 0.59。
 
+📌 **补记（2026-10）**：[LongLive-Plug](../../video_generation/longlive_plug/analysis.md)（NVIDIA）把在 MiniMax-H3 base 上蒸的 4 步 LoRA 免训练挂到 SolarWM-H3 上做相机控制。附录 Fig 13 的偏航例子里画面清晰，但镜头转动幅度明显小于原生多步；作者也写明这些例子都是单 seed、没有位姿指标。
+
 ---
 
 ## 6. 实验

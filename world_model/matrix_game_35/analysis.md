@@ -406,3 +406,5 @@ DMD 的梯度本质是两个 score 之差 `∇L ∝ s_fake − s_real`。**要�
 
 - ⚠️ **SANA-WM 仓库里没有笔记**，而它在本篇里同时是 **benchmark 的提供者**和**最强的效率对手**（吞吐 2.2×、显存更低）。[SolarWM](../solarwm/analysis.md) 的 Table 1 发布矩阵里也列了它。**要判断本篇"位姿精度大赢但吞吐输一半"这个取舍值不值，得先读 SANA-WM。**
 - ⚠️ **Matrix-Game 3.0（arXiv:2604.08995）也没有笔记**，而它是本篇的直接前作、Table 1 的对照行，**并且在 ΔIQ 上赢过本篇**。另外 [ForgeWM](../../video_generation/forgewm/analysis.md) 的主 baseline 是 **Matrix-Game 2.0** —— 这条线在仓库里是断的。
+
+📌 **补记（2026-10）**：[LongLive-Plug](../../video_generation/longlive_plug/analysis.md)（NVIDIA）给了前作 Matrix-Game 3.0 的一组长 rollout 数字：62.18 s（1,057 帧 @ 17 fps）时 VBench 七维均值，原生 50 步 83.73、官方 3 步蒸馏 84.30、挂它的长上下文 LoRA（4 步）84.34。Matrix-Game 3.0 本身仍然没有笔记。
