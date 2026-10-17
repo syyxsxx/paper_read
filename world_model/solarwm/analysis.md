@@ -338,6 +338,8 @@ $$
 
 📌 **补记（2026-10）**：同一团队随后在这个框架上做了 [SolarRenderer](../solarrenderer/analysis.md)：同样冻结 MiniMax-H3 33B，把游戏引擎导出的结构视频（灰盒、语义图、深度、SMPL 身体）接进 H3 原生的 reference 通路，并让每个结构帧拿到目标帧的 RoPE 位置；一个 control LoRA 加一个 4 步加速 LoRA 就能做结构条件渲染。它也保留了 H3 的多模态打包，没有改成 video-only DiT。
 
+📌 **补记（2026-10）**：同一团队还发布了 [H3 Streaming VAE Decoder](../../inference_acceleration/h3_streaming_vae/analysis.md)：不训练、不改权重，把 H3 的 VAE decoder 改成逐 latent 的因果流式解码，SolarWM 这种一次出 5 个 latent 的模型解码时不用再等下一个 chunk 的 2 个 latent。它在 SolarWM 的 26 段测试视频上验证过，亮度跳变 p95 从 2.27 降到 0.59。
+
 ---
 
 ## 6. 实验

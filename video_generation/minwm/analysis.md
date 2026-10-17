@@ -269,6 +269,8 @@ HY1.5 那个数字用 HF 权重体积反推是 **226,606,220**,与架构推算�
 
 **④ 排除 VAE 时间是自利的。** Fig 1 把 "Streaming VAE Decoding" 列为 pipeline 的一部分,Table 1 却明说 "VAE-related time is excluded"。对一个宣称实时交互的系统,VAE 解码延迟是用户实际感知延迟的一部分。(仓库里有 `taehv.py`,说明作者知道 VAE 是瓶颈。)
 
+📌 **补记(2026-10)**:VAE 这一段有多大,[H3 Streaming VAE Decoder](../../inference_acceleration/h3_streaming_vae/analysis.md) 给了 MiniMax-H3 上的一个量级:官方 decoder 每个 5-latent 窗口解码 0.73 s,且第一帧要先等 7 个 latent 全部生成;改成免训练的逐 latent 因果流式之后,首帧降到 0.04 s,画质低约 0.6–0.8 dB。
+
 **⑤ 可交互时长上限只有约 5 秒,论文完全没提。** issue #9 里用户生成 161 帧(10 s)出现严重崩坏,维护者回复:"when tuning the official HY1.5 to AR video generator, **we only trained it on 77 frames**. So if you want longer videos, you need Infity-RoPE / Deep Forcing etc. as training-free length extrapolation." —— 一个自称 "interactive world model" 的系统,**可交互时长上限约 4.8 秒**,这是最该被指出的落差。
 
 **⑥ "fully open-source / reproducible" 有实质缺口。**
