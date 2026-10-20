@@ -311,6 +311,7 @@ $$
 | [TeaCache](../teacache/analysis.md) | 论文称自己与特征缓存、步数蒸馏正交。发布的实现恰好就架在 8 步 Turbo LoRA 上，算是"稀疏 + 少步"叠加的一个实例 |
 | [Vidu S2](../../video_generation/vidu_s2/analysis.md) | 工业侧在用 SpargeAttn / SLA 这类免训练或轻训练的稀疏注意力；Veda 论文把 SpargeAttn 归为"平均池化估计"的一类 |
 | [SolarWM](../../world_model/solarwm/analysis.md) | 以 MiniMax-H3-33B 为骨干之一；Veda 的官方实现正好给了这个 33B 模型在 24 GB 卡上推理的工程路径 |
+| **[Sink-Sparse Hybrid](../sink_sparse_hybrid/analysis.md)** | 📌 **免训练、零在线选块的另一端**：用 8 条 dense 轨迹离线统计每个 (layer, head) 的块内注意力质量，定出一张所有步、所有 prompt 共用的静态 mask（38.8% 密度时平均覆盖 90% 的注意力质量），Wan2.1-1.3B 上端到端 1.54–1.74×；Veda 则训打分器、每次调用在线选块。它的补偿分支是全序列池化 KV，与稀疏分支重叠、按 LSE 合并，和 Sol-Attn 只补没选中块的做法不同 |
 
 ⚠️ **仓库缺口**：VSA、SVG、STA、VMoBA、SpargeAttn、Sol-Attn 等直接对手都还没有笔记，ThunderKittens 与 FA4 CuTe 块稀疏 kernel 也没有。
 
