@@ -410,6 +410,7 @@ Table 8，四组分数（0–100），节选：
 | **[Mask Forcing](../../video_generation/mask_forcing/analysis.md)** | 同团队（Shengju Qian）在因果视频蒸馏上的工作；本文 §3.5 的流式扩展同样是在学生自己的 rollout 上做分布匹配，但没有给出结果 |
 | [五篇横向对照](../../video_generation/dmd_few_step_ar/analysis.md) | structure-guided DMD 是"给 DMD 打补丁"的又一种：不改目标函数，只把 teacher 的预测沿条件方向外推，用来抵消 teacher 自身的模糊 |
 | **[LongLive-Plug](../../video_generation/longlive_plug/analysis.md)** | 本文三个 4 步起点之一的原论文（NVIDIA）。它主张 base 上蒸一次、免训练挂到所有下游，H3 上的 6 个下游只有定性展示；本文这组数据正好是它在强控制下游上的第三方测试：免训练挂上去在一组 Elo 里最低（922），另一组里与 DMAD 打平（1028 vs 1024），针对控制 LoRA 后训练后到 1107 |
+| **[OmniXRef](../../video_generation/omnixref/analysis.md)** | 同一个 MiniMax-H3 Ref2VA 起点，处理参考的思路相反：本文冻结 H3、结构视频不标类型并与目标帧共用 RoPE 位置；OmniXRef（Adobe）给每个参考写任务定义句、在 RoPE 第四轴单独占一个槽，并在 Ref2VA checkpoint 上用约 10M 条编辑数据直接微调（五类平均 Score 1.45 → 3.59）。两篇都用 Gemini 3.8 Flash 当裁判 |
 
 ⚠️ **仓库缺口**：直接对手 LynnReal-Omni、StreamRender-H3、Magpie、Code World Model、Cosmos-Transfer2.5 都还没有笔记；本文的 4 步起点 DMAD 也没有。
 

@@ -37,6 +37,8 @@ DiT 已经是高保真视频生成的统治性范式,但它的**高层语义规�
 | **Retrain MLLM 生成语义 token** | BLIP3o-Next、X-Omni、Tong et al. 2026 | 重训 MLLM 显式产 visual token | **本文所属阵营** |
 | 视频侧统一模型 | UniVideo、UniVid、Omni-Video | 冻 MLLM + adapter/query | 本文的直接靶子 |
 
+📌 **补记(2026-10)**:[OmniXRef](../omnixref/analysis.md)(Adobe,多参考视频编辑)属于表里"External diffusion + hidden state"一路:冻结 Qwen3-VL-8B,文本位置用 MLLM 输出的语义上下文,视觉位置换成 VAE latent,和带噪目标一起进单流 DiT 做全注意力,没有 learnable query。它没有和其他融合方式做对照。
+
 **Incremental claim**:前人在这条路上"直接选一个设计就开跑",本文**把设计空间穷举成 5(量化)× 4(生成机制)× 6(注入方式)三组受控实验**,并给出每一组的胜出者和失败原因。这是这篇论文唯一也是全部的贡献 —— 它不宣称架构创新。
 
 ---

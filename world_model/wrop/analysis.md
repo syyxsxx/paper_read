@@ -379,6 +379,7 @@
 | **[AWoMo](../awomo/analysis.md)** | 同为"用可程序化验证的合成数据扩展世界模型"：AWoMo 取材于游戏开发轨迹，WROP 取材于手写的 Blender 生成器 |
 | **[PWM（Alaya Lab）](../pwm/analysis.md)** | ⚠️ **只是撞名**：那篇的 PWM 是 Alaya Lab 的 *Programmable World Model*；本文的 PWM 是作者在 Trainium2 上的训练栈，两者无关 |
 | [Avatar-Forever](../../video_generation/avatar_forever/analysis.md) / [AlayaWorld](../alayaworld/analysis.md) | LTX-2.3 谱系：这两篇的底座 LTX-2.3 在本文以两种形态参赛 —— LTX-2.3 Extend（续写 API，第 10）与 LTX-2.3 Dev（IC-LoRA 编辑，第 12）；另外 Avatar-Forever 用 Gemini 当裁判，恰是本文论证不可靠的做法 |
+| [OmniXRef](../../video_generation/omnixref/analysis.md) | 本文把 Seedance 2.5、MiniMax H3 归为"参考生视频"（重新生成整段事件）；在 OmniXRef 的参考编辑 benchmark 上，这两个模型的保源分（SP）正好最低（3.71、2.30），与这里的归类一致 |
 
 ⚠️ **仓库缺口**：本文的前作 VBVR 与 VBVR-Pro、以及被援引为"VLM 缺乏 core knowledge"的几篇（Li et al., 2025；Luo et al., 2025–2026）都没有笔记。
 
