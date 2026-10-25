@@ -56,6 +56,7 @@
 | [Training Object Permanence in World Models](./wrop/analysis.md) | wrop | F 评测基准(物体恒存,附合成训练数据) | CMU+USC+JHU+Oxford+Stanford 等 16 校, 2026-09 | 150 个手写 Blender 生成器×6 个认知范式(遮挡/容器/阻挡/下落/碰撞)的 V2V 续写基准+150 万训练样本+14 模型人评 Elo;微调 Cosmos3-Nano 得 PWM-WROP,续写类第一。但考题种子=训练同槽位种子末 5 位、300 题仅 176 个场景,且无底座对照 |
 | [FrameMorrow: Future-Guided Frame Selection with Prospective Tokens for Long-Horizon Video Generation](./framemorrow/analysis.md) | framemorrow | A 交互式视频世界模型（选帧插件） | NUS+哈工大（深圳）, 2026-09 | 16M 参数前瞻选帧器：因果 Transformer 自回归预测 M=4 个 Prospective Token，以 DINOv2 视觉对应作未来监督（Spearman ρ=0.42 接近 oracle 0.51），plug-and-play 覆盖 11 种骨干（含闭源 Seedance 2.0/Kling O3）；Causal Forcing Avg Rank 4.83→1.33，一致性偏好 62.7% vs native 16.7%；K=4 帧预算极小、训练数据 10K 视频、代理指标与生成效用差距 ρ=0.09 |
 | [SolarRenderer: Few-Step Generative Reference Rendering](./solarrenderer/analysis.md) | solarrenderer | G 生成式渲染(引擎结构→视频) | NUS+LIGHTSPEED+港中深+SLAI+港科大(广州), 2026-10 | 冻结 MiniMax-H3 33B,结构视频走原生 reference 通路并拿目标帧的 RoPE 位置,不标类型、只用两句固定描述,一个 control LoRA 跟随灰盒/语义图/深度/身体网格,泛化到骨架、线稿、点云等 11 种未见表示;structure-guided DMD 只后训练 4 步加速 LoRA(160 次 generator 更新),比自己的 50 步快 12.3×。但证据几乎全靠 Gemini 裁判:对同 backbone 的 LynnReal-Omni 泛化集打平、未见表示上低 6 分,自动指标多处相反,流式版本无结果 |
+| [Code World Model: Coding Agent as World Brain](./cwm/analysis.md) | cwm | G 代码驱动世界模型 | Westlake AGI Lab+NTU, 2026-08 | Coding Agent（GPT-5.6 Sol）写可执行代码维护持久世界状态，轻量确定性编译器压成 1/16 分辨率 Proxy Video，MiniMax-H3（rank-128 LoRA，596M 参数）在 5.6h GTA V 数据上做视觉渲染；5 个多风格 Prompt 定性验证 Proxy 时空跟随+rich visual detail；局限：训练规模小、Agent 无法从零构建复杂开放世界 |
 
 ## 核心问题
 
