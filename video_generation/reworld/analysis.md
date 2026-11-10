@@ -421,6 +421,8 @@ ReWorld 均值第一,**但没有任何单项第一**(Imaging 甚至是全表最�
 
 📌 **补记(2026-10)**:部分作者重叠的 [LongLive-Plug](../longlive_plug/analysis.md)(NVIDIA,ZhiFei Chen、Luozhou Wang、Shuai Yang 均在作者里)把一个在 AR 版 Wan base 上蒸的长上下文 LoRA 免训练挂到 ReWorld 上:64 s 时 VBench 七维均值从 73.51(24 步)升到 75.77(4 步),16–64 s 每个长度都更高,但背景一致性从 88.87 降到 80.81。对照只有 24 步的 ReWorld-base,没有和本篇 §4.6 的 4 步 DMD LoRA 比。
 
+📌 **补记(2026-11)**:LLM 侧的 [AnchorKV](../../inference_acceleration/anchorkv/analysis.md)(Technion)走的是和 landmark bank 不同的"有界但不遗忘":不挑哪些 token 留下,而是全部留下、按重要性给精度(少量精确锚点 + 每个 token 一个锚点系数 + 定点补的 2-bit 残差),字节对齐时 20× 胜过驱逐方法的 10×。它只在 LLM 上测过,能否用在这类视频世界模型的 KV cache 上还没人试。
+
 ---
 
 ## 8. 一句话总结

@@ -299,6 +299,7 @@ $$
 | **[HetA-DiT](../heta_dit/analysis.md)** | "全局信息怎么给"的又一种答案：本篇让每个 query 都走两路，一路是精确的静态块稀疏，一路是全序列池化 KV 的近似；HetA 让 80% 的 token 只走局部。本篇免训练，HetA 需要两阶段微调 |
 | [Vidu S2](../../video_generation/vidu_s2/analysis.md) | 工业侧按层灵敏度混用 SageAttention / SpargeAttn / SLA；SpargeAttn 正是本篇的主要对照 |
 | [TeaCache](../teacache/analysis.md) | 正交的另一条免训练路线：跨步缓存，省的是"算不算这一步"；本篇省的是"每一步里注意力算多少" |
+| [AnchorKV](../anchorkv/analysis.md) | LLM 侧"不丢、粗略近似其余部分"的另一种粒度：本篇的粗分支用 30 个 token 的均值 key 代表一组 token，AnchorKV 给每个 token 留一个沿最近锚点方向的独立系数，再给对输出误差影响最大的 token 补 2-bit 残差 |
 
 ⚠️ **仓库缺口**：SVG / SVG2、SpargeAttn、STA、XAttention、DiTFastAttn、Sol-Attn 都还没有笔记。
 
