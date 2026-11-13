@@ -593,6 +593,7 @@ SDXL-Turbo 那一侧（左表）：
 | [OPDVR](../../llm/opdvr/analysis.md) | reward 进入目标的方式不同：OPDVR 让 verifier 决定 teacher 信号的**符号**（ReLU 门），RWTD 让 reward 决定目标粒子的**权重**（softmax），完全没有负信号，防塌靠的是固定的 reference 锚 |
 | [opd_then_rl](../../llm/opd_then_rl/analysis.md) | 那篇主张"先扩覆盖、后锐化，分阶段优于联合"。RWTD 恰好是**联合**：把 on-policy 锐化与 reference 锚固定比例混进同一个目标。**它没有试过 ρ 从 1 退火到 0 的分阶段方案**，那篇的结论提示这是值得补的对照 |
 | [CTM](../../inference_acceleration/ctm/analysis.md) / [dmd_few_step_ar](../../video_generation/dmd_few_step_ar/analysis.md) | RWTD 的底座 SANA-Sprint 就是 sCM（连续时间 consistency）+ LADD 蒸出来的一步模型。RWTD 处在"蒸完之后"的阶段，不需要 teacher、轨迹或 critic；名字里的 Distillation 指把传输目标 amortize 进生成器 |
+| [FewStepRL](../fewsteprl/analysis.md) | 同样是"对已蒸好的少步模型继续调"，但走 RL 目标：把 FlowGRPO、AWM、DiffusionNFT、DiffusionOPSD、ReFL 统一改造到平均速度模型上比较。可微 reward 时 ReFL 最好，不可微时 DiffusionNFT 系最快，两者都伴随明显的 reward hacking |
 
 ⚠️ **仓库缺口**：本文最直接的几个对手和前置工作都还没有笔记，包括 DrPO [23]、FAV [26]、W-Flow [17]、Drifting Models [9]、RDM [12]、SANA-Sprint [5]，以及一作的前作 LAIR [50]（Table 1 里的 LAIR-SDXL）。
 

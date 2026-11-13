@@ -21,3 +21,4 @@
 | [llada_image](./llada_image/analysis.md) | LLaDA-Image: Building Strong Image Generators with Fully Open Training Recipes | 统一 T2I + 编辑全开放食谱 | Inclusion AI, 2026-09 | [github](https://github.com/inclusionAI/LLaDA-Image) | ✅ |
 | [diffusibility](./diffusibility/analysis.md) | On the Diffusibility of High-Dimensional Latents | RAE 高维重建 latent 的有效维度塌缩 + x0-prediction(T2I) | Cornell+Adobe+VT+UW+UMD, 2026-09 | [project](https://cfeng16.github.io/on_the_diffusibility/) | ✅ |
 | [rwtd](./rwtd/analysis.md) | Aligning One-Step Generative Models with Reward-Weighted Transport Distillation | 一步生成器黑盒 reward 对齐(T2I) | ByteDance Seed+UC Berkeley, 2026-09 | [github](https://github.com/austin-k-wang/Reward-Weighted-Transport-Distillation) | ✅ |
+| [fewsteprl](./fewsteprl/analysis.md) | FewStepRL: Fine-tuning Few-step Diffusion Models with Reinforcement Learning | 论文 | 腾讯混元+西湖大学, 2026-11 | [project](https://edapinenut.github.io/fewsteprl.page/) | ✅ |

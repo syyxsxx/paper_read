@@ -340,6 +340,7 @@ $$
 | [CTM](../../inference_acceleration/ctm/analysis.md) | 流映射一族的源头之一：CTM 学任意 `t → s` 的两时间映射；PTD 是把起点限制在网格上、终点限制在当前跳内、终点时间依赖放进多项式基的特例 |
 | [TDM](../../inference_acceleration/tdm/analysis.md) | 另一种把"轨迹"和"分布匹配"结合的少步蒸馏 |
 | [DyMD](../dymd/analysis.md) | 从分布匹配一侧修 DMD 的"动态 / 多样性损失"（按运动一致性调 re-noise 时间步）；PTD 从轨迹监督一侧绕开它 |
+| [FewStepRL](../../image_generation/fewsteprl/analysis.md) | 少步模型蒸好之后的下一步：用 RL 继续调。它的主要改造依赖网络带区间终点 `r` 这个输入（AnyFlow 蒸出的平均速度模型）；PTD 的学生每跳只输出一个平均速度、不带 `r`，套它的方法只能用最简单的 u-form |
 
 ⚠️ **仓库缺口**：rCM、AnyFlow、π-Flow、TVM、MeanFlow、Flow Map Matching 都还没有笔记；H3 上的 LightX2V Turbo、FastH3、DMAD 也没有专篇。
 

@@ -307,6 +307,8 @@ $$
 
 **⑫ 正面:开源质量高,这是它影响力的真正来源。** MIT 协议、代码完整、放了 3 个 HF checkpoint。**方法本身的数学是已知结果(Song et al. 的 probability-flow ODE ↔ SDE 对偶)在 rectified flow 上的特化**,但它把链路真正打通并可复现,于是被后续大量工作直接拿去当 baseline。
 
+📌 **补记(2026-11)**:[FewStepRL](../fewsteprl/analysis.md) 把本篇改造到少步平均速度模型上(FewStepGRPO:随机采样器 + 重放存下的转移,在查询层级上重估 PPO 式似然比)。在 AnyFlow 蒸的 SD3.5-M 和 Wan2.1-1.3B 上,它是 7 个 trainer 里最慢、最弱的:混合 reward 400 次迭代,训练 reward 只从 1.450 到 1.461;视频上还低于初始化(15.89 对 16.54)。
+
 ---
 
 ## 6. 一句话总结

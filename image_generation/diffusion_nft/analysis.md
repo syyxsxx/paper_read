@@ -325,6 +325,8 @@ $$
 
 **⑪ 正面:附录 B.1 顺手澄清了 Flow-GRPO 的一个"未解释超参"。** FlowGRPO 的 `g_t = a√(t/(1−t))` 里那个 `a` 一直没解释来源;本文从标准扩散 SDE 出发推出 `g_t = λ_t√(2t/(1−t))`,**指出 `a = √2·λ_t` 只是插值参数 `λ_t ∈ [0,1]` 的缩放版,`a = √2` 对应最大方差 SDE**。顺带指出 DanceGRPO 用固定方差"在图像模型上更差、在视频模型上更稳"。这段对读 Flow-GRPO 很有帮助。
 
+📌 **补记(2026-11)**:[FewStepRL](../fewsteprl/analysis.md)(腾讯混元+西湖大学)把本篇改造到少步平均速度模型上(MeanFlowNFT / DMDNFT),并把损失分解成"自回归项 + 奖励增广项":本篇的参照点和基线点都是旧策略的干净预测,`W_reg = W_rwd = β²/t²`,`ω = clip(A, −1, 1)/β`。在 AnyFlow 蒸的 SD3.5-M 上,不可微的 OCR reward 下它最快拉高 reward(MeanFlowNFT 100 次迭代到 0.85),但留出质量明显下降;可微 reward 下不如 ReFL。
+
 ---
 
 ## 7. 一句话总结
