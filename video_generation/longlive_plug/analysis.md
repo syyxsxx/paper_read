@@ -333,6 +333,7 @@ $$
 | [LongLive 2.0](../longlive2/analysis.md) | 同一团队。长上下文 LoRA 用的 Streaming Long Tuning 来自 LongLive；LongLive 2.0 的少步能力也是一个 DMD-LoRA 旁路 |
 | [五篇横向对照](../dmd_few_step_ar/analysis.md) | 那五篇各自给一个少步因果模型打补丁；本文换了一个轴：不改蒸馏方法，只让蒸出来的东西能在同一 base 的后代之间复用 |
 | [SolarWM](../../world_model/solarwm/analysis.md) / [H3-World](../../world_model/h3world/analysis.md) | 都在 H3 迁移的 6 个下游里；SolarWM-H3 的相机偏航例子是"控制幅度被削弱"的那个。SolarWM 也有 NVIDIA 的 Wei Huang、Yukang Chen 署名 |
+| [PTD](../ptd/analysis.md) | MiniMax-H3 上另一个 4 步 LoRA：只用轨迹监督、每跳一套 LoRA，在 base 上对 DMD 式 LightX2V Turbo 多样性大幅领先；它没测迁移到下游模型 |
 
 ⚠️ **仓库缺口**：LCM-LoRA、DMD2、SCOPE、LongLive（第一版）都还没有笔记。
 

@@ -357,6 +357,8 @@ $$
 
 **⑫ 正面:把 diversity 当一等公民来测。** 视频蒸馏领域长期只报 VBench 这类质量分,而 mode collapse 恰恰在这类指标上不可见。PDD 用三种独立方式(OneIG diversity、V-JEPA/VideoMAE 特征距离、同种子对比的定性图)交叉验证同一个主张,**这个评测设计比方法本身更值得学**。
 
+📌 **补记(2026-11)**:同组(Julius Berner 两篇都署名)的 [PTD](../ptd/analysis.md) 把 PDD 当作 Wan2.1-14B 上的主对照并自己复现:同 batch 256、学习率 1e-5,复现版最好的第 96 次更新 VBench Overall 83.67,比本篇 4 NFE 的发表值 84.92 低 1.25。两者都只用轨迹监督,区别在 teacher 速度从哪里取:本篇取 teacher 自己 Runge-Kutta 的中间点,PTD 取学生预测的曲线上的点。另**更正**:PDD 原文 §5 写 14B 的 short / long 分别是 200 / 3k 次迭代,与本笔记表格和后文写的 250 / 3.5k 不符,以原文为准(250 次出现在 LTX-2.3 那组实验;1.3B 的迭代数我没在原文里找到)。
+
 ---
 
 ## 7. 一句话总结

@@ -358,6 +358,7 @@ $$
 | **[OPSD-V](../opsd_v/analysis.md)** | 都在 DMD 类训练里引入真实视频：OPSD-V 用真实 chunk 作 teacher 的上下文，DyMD 用配对真实视频作 affinity 的参照。两者都因此不再只依赖 prompt |
 | **[Mask Forcing](../mask_forcing/analysis.md)** | 都不改 DMD 目标函数，只动训练时的噪声：Mask Forcing 把问题归到 reverse KL 的 mode-seeking，在 rollout 上做 dual-noise masking；DyMD 把问题归到高 SNR 下 teacher 后验的 mode locking，改 re-noise 的噪声水平分布。DyMD 的 Prop 2 给了"为什么噪声水平是关键旋钮"的一个闭式解释 |
 | **[GameWAM](../../world_model/gamewam/analysis.md)** / **[WorldDiT](../../world_model/worlddit/analysis.md)** | DyMD 的 WorldArena 实验是"视频模型当策略骨干"的用法（冻结 backbone + VPP 动作头），和这两篇的世界—动作模型属于同一类下游评估，但 DyMD 只取一步前向的中间特征 |
+| **[PTD](../ptd/analysis.md)** | DMD"多样性 / 动态损失"的另一种解法：DyMD 在 DMD 内部改 re-noise 时间步；PTD 完全不用 DMD，改成在学生自己的曲线上查询 teacher 速度，在 MiniMax-H3 上对 DMD 式 LightX2V Turbo，多样性 1.55 → 2.81 |
 
 ⚠️ **仓库缺口**：PhysisForcing（teacher PF-Wan 的来源）、R-Bench / RoVid-X、ABot-PhysWorld（EZS-Bench 的来源）、WorldArena、Phased DMD / RTDMD 都还没有笔记。
 
