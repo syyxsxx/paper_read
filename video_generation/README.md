@@ -94,6 +94,7 @@
 | [omnixref](./omnixref/analysis.md) | OmniXRef: A Unified Framework for Multimodal Multi-Reference Video Editing | 多参考视频编辑:文本/图/视频参考统一成"任务定义 + 指令 + 参考"的 reference bank,冻结 Qwen3-VL-8B + 单流 DiT;Mix-Patchify 粗 patch 参考 + R²-RoPE 预留槽位 | Brown + Adobe Research, 2026-10 | [project](https://oliver-cong02.github.io/OmniXRef.github.io/) | ✅ |
 | [ptd](./ptd/analysis.md) | PTD: Parametric Trajectory Distillation for Few-Step Video Generation | 少步视频蒸馏(只用轨迹监督):学生每步输出平均速度 + 多项式曲率,在自己的曲线上两点查询 teacher,一个速度最小二乘;推理丢掉曲率头。MiniMax-H3 33B(每跳 LoRA)与 Wan2.1-14B 4 步 | NVIDIA+EPFL+Stanford, 2026-10 | [project](https://alan-lanfeng.github.io/PTD) | ✅ |
 | [rediverse](./rediverse/analysis.md) | ReDiverse: Restoring Diversity in Distilled Image and Video Generators by Probing Activations | 少步学生多样性修复(不重蒸):探针发现第 1 步某个中间 block 的激活 PR 坍缩,在该处用 200 步 LoRA 回归 teacher 激活(FT)或沿 teacher PCA 方向加扰动(TF)。SDXL/SD3/Wan2.1-14B/MiniMax-H3 | UIUC+fal+JHU, 2026-11 | [github](https://github.com/H-furkan/rediverse) | ✅ |
+| [apex](./apex/analysis.md) | Few-Step Streaming Video Generation via Condition Shifting | few-step 流式音视频蒸馏(I2V avatar) | 清华+生数科技+西湖大学, 2026-11 | [arXiv](https://arxiv.org/abs/2611.14033) | ✅ |
 | self_forcing | Self Forcing: Bridging the Train-Test Gap in Autoregressive Video Diffusion | 长 T2V | NeurIPS 2025 (Adobe) | [github](https://github.com/guandeh17/Self-Forcing) | ⏳ |
 | causvid | From Slow Bidirectional to Fast Autoregressive Video Diffusion Models | 短 T2V | CVPR 2025 (MIT/Adobe) | [github](https://github.com/tianweiy/CausVid) | ⏳ |
 
