@@ -349,6 +349,7 @@ if self.first_refresh and start == 0 and slot == 1:
 | **[minWM](../../video_generation/minwm/analysis.md)** | 那篇在实时性指标里排除了 VAE 时间。本篇给了 H3 上的一个具体量级：官方 decode 每个 5-latent 窗口 0.73 s，首帧还要先等 7 个 latent；VAE 解码是交互延迟里不能忽略的一段 |
 | [FlashForward](../../video_generation/flashforward/analysis.md) | 那篇的延迟也只计去噪路径、不含 VAE 解码；多卡流水线把去噪做快之后，VAE 这一段的等待会更显眼 |
 | [Veda](../veda/analysis.md) | 同一个 33B backbone 的另一段加速：Veda 降 DiT 注意力的成本，本篇降 VAE 解码的等待，两者在推理链路上前后衔接 |
+| **[DWD](../dwd/analysis.md)** | 同一个瓶颈的另一种解法：本篇不训练，让原厂 decoder 流式化，省的是等待；DWD 微调 DiT 最后几个 block，在最后一步直接出像素，整个 decoder 都不要了。作者的 pi-H3 博客（H100，768p · 5 s）里原厂 H3 VAE 解码要 3.97 s，DWD 版 2 步总时延 6.19 s vs 9.87 s；但 H3 的 32×32×4 patch 让线性头不够用，画质还没有量化数据 |
 
 ⚠️ **仓库缺口**：StreamRender-H3、TaoMate-H3、LynnReal-Omni 都还没有笔记。
 
