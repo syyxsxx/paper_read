@@ -341,6 +341,7 @@ $$
 | [TDM](../../inference_acceleration/tdm/analysis.md) | 另一种把"轨迹"和"分布匹配"结合的少步蒸馏 |
 | [DyMD](../dymd/analysis.md) | 从分布匹配一侧修 DMD 的"动态 / 多样性损失"（按运动一致性调 re-noise 时间步）；PTD 从轨迹监督一侧绕开它 |
 | [FewStepRL](../../image_generation/fewsteprl/analysis.md) | 少步模型蒸好之后的下一步：用 RL 继续调。它的主要改造依赖网络带区间终点 `r` 这个输入（AnyFlow 蒸出的平均速度模型）；PTD 的学生每跳只输出一个平均速度、不带 `r`，套它的方法只能用最简单的 u-form |
+| [ReDiverse](../rediverse/analysis.md) | 不换蒸馏方法、事后修 DMD 学生多样性的路线，对照的也是 lightx2v 的 H3 Turbo：在第 1 步 block 45 处用 LoRA 回归 teacher 激活或加 teacher PCA 方向，H3 上 DINO 36.5 → 50.9（teacher 52.5）。它还补了本文缺的 FastH3 对照：同为 H3 4 步学生，FastH3 的 DINO 52.3，Turbo 35.8 |
 
 ⚠️ **仓库缺口**：rCM、AnyFlow、π-Flow、TVM、MeanFlow、Flow Map Matching 都还没有笔记；H3 上的 LightX2V Turbo、FastH3、DMAD 也没有专篇。
 
